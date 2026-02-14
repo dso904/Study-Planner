@@ -8,6 +8,10 @@ import '@mantine/notifications/styles.css';
 import './styles/global.css';
 import theme from './theme';
 import App from './App';
+import { hydrateAllStores } from './lib/store';
+
+// Hydrate stores from Supabase (non-blocking — localStorage loads instantly first)
+hydrateAllStores();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
