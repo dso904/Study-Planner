@@ -277,7 +277,8 @@ function SubjectQuadrant({ subject }) {
                                     subject.id === 'chemistry' ? 'e.g., Organic Chemistry, Bonding...' :
                                         subject.id === 'maths' ? 'e.g., Calculus, Algebra...' :
                                             subject.id === 'biology' ? 'e.g., Genetics, Cell Biology...' :
-                                                'e.g., Chapter details...'
+                                                subject.id === 'english' ? 'e.g., Grammar, Literature...' :
+                                                    'e.g., Chapter details...'
                             }
                             value={newChapterName}
                             onChange={(e) => setNewChapterName(e.target.value)}
@@ -304,21 +305,37 @@ function SubjectQuadrant({ subject }) {
 
 /* ─── Page ─── */
 export default function SubjectsPage() {
+    const coreSubjects = SUBJECTS.filter((s) => s.id !== 'english');
+    const english = SUBJECTS.find((s) => s.id === 'english');
+
     return (
-        <div className="h-[calc(100vh-var(--topbar-h)-3.5rem)] flex flex-col">
-            <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
-                {SUBJECTS.map((subject, i) => (
+        <div className="space-y-3">
+            {/* 2×2 grid for Physics, Chemistry, Maths, Biology — fills viewport */}
+            <div className="grid grid-cols-2 grid-rows-2 gap-3" style={{ height: 'calc(100vh - var(--topbar-h) - 3.5rem)' }}>
+                {coreSubjects.map((subject, i) => (
                     <motion.div
                         key={subject.id}
                         initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.35, delay: i * 0.08 }}
-                        className="min-h-0"
                     >
                         <SubjectQuadrant subject={subject} />
                     </motion.div>
                 ))}
             </div>
+
+            {/* English — full-width block below, scroll to see */}
+            {english && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.35, delay: 0.32 }}
+                    style={{ height: '280px' }}
+                >
+                    <SubjectQuadrant subject={english} />
+                </motion.div>
+            )}
         </div>
     );
 }
+

@@ -1,13 +1,20 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { tasksAtom, SUBJECTS } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { CheckCheck, Clock, Flame, AlertTriangle, TrendingUp, CalendarCheck } from 'lucide-react';
+import {
+    BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip,
+    ResponsiveContainer, Cell, PieChart, Pie,
+} from 'recharts';
+import {
+    CheckCheck, Clock, AlertTriangle, TrendingUp, Target, BarChart3,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const chartColors = ['#8b5cf6', '#22d3ee', '#f472b6', '#fb923c', '#34d399', '#facc15', '#f43f5e'];
 const tooltipStyle = {
     background: '#110f36',
     border: '1px solid rgba(139,92,246,0.25)',
@@ -17,6 +24,11 @@ const tooltipStyle = {
     fontFamily: 'JetBrains Mono, monospace',
     boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
 };
+
+function getHours(task) {
+    if (!task.start_time || !task.end_time) return 0;
+    return dayjs(task.end_time, 'HH:mm').diff(dayjs(task.start_time, 'HH:mm'), 'minute') / 60;
+}
 
 /* ─── Glowing Stat Card ─── */
 function StatCard({ icon: Icon, label, value, color, delay = 0 }) {
@@ -83,11 +95,13 @@ export default function DashboardPage() {
     const tasks = useAtomValue(tasksAtom) || [];
     const subjects = SUBJECTS;
 
+    /* ── Today ── */
     const today = dayjs().format('YYYY-MM-DD');
     const todayTasks = tasks.filter((t) => t.date === today);
     const todayDone = todayTasks.filter((t) => t.status === 'done').length;
     const todayTotal = todayTasks.length;
 
+    /* ── This week ── */
     const weekStart = dayjs().startOf('week').add(1, 'day');
     const weekTasks = tasks.filter((t) => {
         const d = dayjs(t.date);
@@ -95,39 +109,93 @@ export default function DashboardPage() {
     });
     const weekDone = weekTasks.filter((t) => t.status === 'done').length;
     const weekTotal = weekTasks.length;
-    const weekHours = weekTasks.filter((t) => t.status === 'done').reduce((acc, t) => {
-        if (t.start_time && t.end_time) return acc + dayjs(t.end_time, 'HH:mm').diff(dayjs(t.start_time, 'HH:mm'), 'minute') / 60;
-        return acc;
-    }, 0);
+    const weekHours = weekTasks.filter((t) => t.status === 'done').reduce((acc, t) => acc + getHours(t), 0);
     const weekProgress = weekTotal > 0 ? Math.round((weekDone / weekTotal) * 100) : 0;
 
+    /* ── All-time stats ── */
+    const totalTasks = tasks.length;
+    const totalDone = tasks.filter((t) => t.status === 'done').length;
+    const completionRate = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;
     const backlogs = tasks.filter((t) => t.status !== 'done' && t.status !== 'skipped' && dayjs(t.date).isBefore(dayjs(), 'day'));
 
+    /* ── Hours by Subject (this week) ── */
     const chartData = subjects.map((subject) => {
-        const subjectTasks = weekTasks.filter((t) => t.subject_id === subject.id && t.status === 'done');
-        const hours = subjectTasks.reduce((acc, t) => {
-            if (t.start_time && t.end_time) return acc + dayjs(t.end_time, 'HH:mm').diff(dayjs(t.start_time, 'HH:mm'), 'minute') / 60;
-            return acc;
-        }, 0);
+        const hours = weekTasks.filter((t) => t.subject_id === subject.id && t.status === 'done').reduce((acc, t) => acc + getHours(t), 0);
         return { name: subject.name, hours: Math.round(hours * 10) / 10, color: subject.color };
     });
 
+    /* ── Upcoming Tasks ── */
     const upcoming = tasks.filter((t) => t.status === 'pending' && (t.date === today || dayjs(t.date).isAfter(dayjs(), 'day')))
         .sort((a, b) => `${a.date}_${a.start_time}`.localeCompare(`${b.date}_${b.start_time}`)).slice(0, 8);
 
+    /* ── Daily Study Hours (14 days) ── */
+    const dailyData = useMemo(() => {
+        const days = [];
+        for (let i = 13; i >= 0; i--) {
+            const date = dayjs().subtract(i, 'day');
+            const dateStr = date.format('YYYY-MM-DD');
+            const dayDone = tasks.filter((t) => t.date === dateStr && t.status === 'done');
+            const hours = dayDone.reduce((a, t) => a + getHours(t), 0);
+            days.push({ day: date.format('D'), date: date.format('ddd'), hours: Math.round(hours * 10) / 10 });
+        }
+        return days;
+    }, [tasks]);
+
+    /* ── Weekly Trend (4 weeks) ── */
+    const weeklyData = useMemo(() => {
+        const weeks = [];
+        for (let i = 3; i >= 0; i--) {
+            const start = dayjs().subtract(i, 'week').startOf('week').add(1, 'day');
+            const end = start.add(6, 'day');
+            const wt = tasks.filter((t) => {
+                const d = dayjs(t.date);
+                return d.isAfter(start.subtract(1, 'day')) && d.isBefore(end.add(1, 'day')) && t.status === 'done';
+            });
+            const hours = wt.reduce((a, t) => a + getHours(t), 0);
+            weeks.push({ week: `W${start.week()}`, hours: Math.round(hours * 10) / 10, tasks: wt.length });
+        }
+        return weeks;
+    }, [tasks]);
+
+    /* ── Category Breakdown ── */
+    const categoryData = useMemo(() => {
+        const cats = {};
+        tasks.filter((t) => t.status === 'done').forEach((t) => {
+            const cat = t.category || 'other';
+            cats[cat] = (cats[cat] || 0) + 1;
+        });
+        return Object.entries(cats).map(([name, value], i) => ({
+            name: name.replace('_', ' '), value, fill: chartColors[i % chartColors.length],
+        }));
+    }, [tasks]);
+
     return (
         <div className="space-y-4">
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Stats Row — 6 cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 <StatCard icon={CheckCheck} label="Today" value={`${todayDone}/${todayTotal}`} color="#8b5cf6" delay={0} />
-                <StatCard icon={Clock} label="Hours This Week" value={weekHours.toFixed(1)} color="#22d3ee" delay={0.05} />
-                <StatCard icon={Flame} label="Streak" value="0 days" color="#fb923c" delay={0.1} />
+                <StatCard icon={Clock} label="Hours This Week" value={weekHours.toFixed(1)} color="#22d3ee" delay={0.03} />
+                <StatCard icon={Target} label="Total Tasks" value={totalTasks} color="#fb923c" delay={0.06} />
+                <StatCard icon={BarChart3} label="Completed" value={totalDone} color="#34d399" delay={0.09} />
+                <StatCard icon={TrendingUp} label="Completion" value={`${completionRate}%`} color="#a78bfa" delay={0.12} />
                 <StatCard icon={AlertTriangle} label="Overdue" value={backlogs.length} color={backlogs.length > 0 ? '#f472b6' : '#34d399'} delay={0.15} />
             </div>
 
+            {/* Daily Study Hours — full width */}
+            <GlowPanel title="📊 Daily Study Hours (14 days)" color="#8b5cf6" delay={0.18}>
+                <ResponsiveContainer width="100%" height={180}>
+                    <BarChart data={dailyData} barCategoryGap="15%">
+                        <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                        <YAxis hide />
+                        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
+                        <Bar dataKey="hours" fill="#8b5cf6" radius={[5, 5, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </GlowPanel>
+
             {/* Weekly Progress + Hours by Subject — 2 col */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <GlowPanel title="Weekly Progress" color="#8b5cf6" delay={0.2}>
+                <GlowPanel title="Weekly Progress" color="#8b5cf6" delay={0.22}>
                     <div className="flex items-center justify-center py-4">
                         <div className="relative w-40 h-40">
                             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -160,9 +228,42 @@ export default function DashboardPage() {
                 </GlowPanel>
             </div>
 
+            {/* Weekly Trend + Category Breakdown — 2 col */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <GlowPanel title="📈 Weekly Trend" color="#22d3ee" delay={0.28}>
+                    <ResponsiveContainer width="100%" height={180}>
+                        <LineChart data={weeklyData}>
+                            <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                            <YAxis hide />
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Line type="monotone" dataKey="hours" stroke="#22d3ee" strokeWidth={2.5} dot={{ fill: '#22d3ee', r: 5, strokeWidth: 0 }}
+                                style={{ filter: 'drop-shadow(0 0 4px rgba(34,211,238,0.4))' }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </GlowPanel>
+
+                <GlowPanel title="🧩 Category Breakdown" color="#f472b6" delay={0.3}>
+                    {categoryData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={180}>
+                            <PieChart>
+                                <Pie data={categoryData} cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3} dataKey="value">
+                                    {categoryData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                                </Pie>
+                                <Tooltip contentStyle={tooltipStyle} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="flex items-center justify-center h-[180px]">
+                            <p className="text-[11px] text-zinc-600 mono">No data yet</p>
+                        </div>
+                    )}
+                </GlowPanel>
+            </div>
+
             {/* Upcoming Tasks + Subject Progress — 2 col */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <GlowPanel title="Upcoming Tasks" color="#fb923c" delay={0.3}>
+                <GlowPanel title="Upcoming Tasks" color="#fb923c" delay={0.32}>
                     {upcoming.length === 0 ? (
                         <div className="flex items-center justify-center py-8">
                             <p className="text-[11px] text-zinc-600 mono">No upcoming tasks</p>

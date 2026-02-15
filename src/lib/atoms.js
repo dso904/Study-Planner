@@ -50,6 +50,7 @@ export const SUBJECTS = [
     { id: 'chemistry', name: 'Chemistry', emoji: '🧪', icon: '⚗️', color: '#f472b6' },
     { id: 'maths', name: 'Maths', emoji: '📐', icon: '🧮', color: '#fb923c' },
     { id: 'biology', name: 'Biology', emoji: '🧬', icon: '🌿', color: '#34d399' },
+    { id: 'english', name: 'English', emoji: '📝', icon: '📖', color: '#a78bfa' },
 ];
 
 // ─── Base Atoms (persisted to localStorage) ──────────────────

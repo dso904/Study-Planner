@@ -16,7 +16,7 @@ const mono = JetBrains_Mono({
 
 export const metadata = {
   title: 'Day Planner — Command Center',
-  description: 'A premium study planner with weekly scheduling, subject tracking, and analytics',
+  description: 'A premium study planner with weekly scheduling, subject tracking, and progress dashboard',
 };
 
 export default function RootLayout({ children }) {

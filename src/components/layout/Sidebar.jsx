@@ -11,9 +11,7 @@ import {
     LayoutDashboard,
     BookOpen,
     AlertTriangle,
-    BarChart3,
-    ChevronLeft,
-    ChevronRight,
+    Menu,
 } from 'lucide-react';
 
 const navItems = [
@@ -21,7 +19,6 @@ const navItems = [
     { key: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: '/subjects', label: 'Subjects', icon: BookOpen },
     { key: '/backlogs', label: 'Backlogs', icon: AlertTriangle },
-    { key: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 function NavItem({ item, active, collapsed }) {
@@ -91,24 +88,36 @@ export default function Sidebar() {
                 background: 'oklch(0.15 0.012 280)',
             }}
         >
-            {/* Logo */}
+            {/* Header: Hamburger + Logo */}
             <div
-                className={`flex items-center gap-3 border-b border-white/8 min-h-16 ${collapsed ? 'justify-center px-3 py-5' : 'px-5 py-5'}`}
+                className={`flex items-center border-b border-white/8 min-h-16 ${collapsed ? 'justify-center px-3 py-5' : 'px-4 py-5'}`}
             >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-lg leading-none">D</span>
-                </div>
+                {/* Hamburger toggle — always visible */}
+                <button
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:bg-white/6 hover:text-zinc-200 transition-all flex-shrink-0"
+                    aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                >
+                    <Menu size={18} strokeWidth={2} />
+                </button>
+
+                {/* Logo text — only when expanded */}
                 <AnimatePresence>
                     {!collapsed && (
-                        <motion.span
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                        <motion.div
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: 'auto' }}
+                            exit={{ opacity: 0, width: 0 }}
                             transition={{ duration: 0.15 }}
-                            className="text-zinc-100 font-bold whitespace-nowrap"
+                            className="flex items-center gap-3 ml-3 overflow-hidden"
                         >
-                            Day Planner
-                        </motion.span>
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center flex-shrink-0">
+                                <span className="text-white font-bold text-lg leading-none">D</span>
+                            </div>
+                            <span className="text-zinc-100 font-bold whitespace-nowrap">
+                                Day Planner
+                            </span>
+                        </motion.div>
                     )}
                 </AnimatePresence>
             </div>
@@ -123,16 +132,6 @@ export default function Sidebar() {
                         collapsed={collapsed}
                     />
                 ))}
-            </div>
-
-            {/* Collapse toggle */}
-            <div className={`py-3 px-4 border-t border-white/8 flex ${collapsed ? 'justify-center' : 'justify-end'}`}>
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-white/6 hover:text-zinc-200 transition-all"
-                >
-                    {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-                </button>
             </div>
         </nav>
     );

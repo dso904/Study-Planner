@@ -16,7 +16,6 @@ const viewTitles = {
     '/dashboard': 'Dashboard',
     '/subjects': 'Subjects & Chapters',
     '/backlogs': 'Backlogs',
-    '/analytics': 'Analytics',
 };
 
 export default function Topbar() {
@@ -41,8 +40,8 @@ export default function Topbar() {
                     {pathname === '/' && (
                         <span
                             className={`text-xs mono px-2.5 py-1 rounded-md ${isCurrentWeek(currentWeekStart)
-                                    ? 'bg-violet-500/10 text-violet-300'
-                                    : 'bg-white/4 text-zinc-500'
+                                ? 'bg-violet-500/10 text-violet-300'
+                                : 'bg-white/4 text-zinc-500'
                                 }`}
                         >
                             {getWeekRangeLabel(currentWeekStart)}
