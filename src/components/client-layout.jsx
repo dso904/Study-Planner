@@ -2,8 +2,8 @@
 
 import { Provider, useAtomValue } from 'jotai';
 import { sidebarCollapsedAtom } from '@/lib/atoms';
-import Sidebar from '@/components/layout/Sidebar';
-import Topbar from '@/components/layout/Topbar';
+import Sidebar from '@/components/layout/sidebar';
+import Topbar from '@/components/layout/topbar';
 import StatusBar from '@/components/layout/status-bar';
 import StoreHydrator from '@/components/store-hydrator';
 import QuickNotes from '@/components/quick-notes/quick-notes';
