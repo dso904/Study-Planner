@@ -7,7 +7,7 @@ import { supabase } from './supabase';
 import dayjs from 'dayjs';
 
 // ─── Supabase Helpers ────────────────────────────────────────
-// Cloud-first: all mutations write to Supabase FIRST, then update local state.
+// Local-First (Optimistic UI): all mutations update local state FIRST, then push to Supabase.
 // localStorage is only a cache for instant hydration on load.
 
 async function dbUpsert(table, data) {
@@ -92,6 +92,7 @@ export const SCHEDULE = {
 export function useTaskActions() {
     const [tasks, setTasks] = useAtom(tasksAtom);
     const tasksRef = useRef(tasks);
+    const debounceRef = useRef({}); // Store timeouts by task ID
     useEffect(() => { tasksRef.current = tasks; }, [tasks]);
 
     const addTask = useCallback((task) => {
@@ -104,10 +105,13 @@ export function useTaskActions() {
         const updated = { ...updates, updated_at: new Date().toISOString() };
         setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...updated } : t));
         // Read latest from ref to push complete record to cloud
-        setTimeout(() => {
+        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+        
+        debounceRef.current[id] = setTimeout(() => {
             const current = tasksRef.current.find((t) => t.id === id);
             if (current) dbUpsert('tasks', current);
-        }, 50);
+            delete debounceRef.current[id];
+        }, 500);
     }, [setTasks]);
 
     const deleteTask = useCallback((id) => {
@@ -143,6 +147,7 @@ export function useTaskActions() {
 export function useChapterActions() {
     const [chapters, setChapters] = useAtom(chaptersAtom);
     const chaptersRef = useRef(chapters);
+    const debounceRef = useRef({});
     useEffect(() => { chaptersRef.current = chapters; }, [chapters]);
 
     const addChapter = useCallback((chapter) => {
@@ -154,10 +159,13 @@ export function useChapterActions() {
     const updateChapter = useCallback((id, updates) => {
         const updated = { ...updates, updated_at: new Date().toISOString() };
         setChapters((prev) => prev.map((c) => c.id === id ? { ...c, ...updated } : c));
-        setTimeout(() => {
+        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+        
+        debounceRef.current[id] = setTimeout(() => {
             const c = chaptersRef.current.find((x) => x.id === id);
             if (c) dbUpsert('chapters', c);
-        }, 50);
+            delete debounceRef.current[id];
+        }, 500);
     }, [setChapters]);
 
     const deleteChapter = useCallback((id) => {
@@ -175,6 +183,7 @@ export function useChapterActions() {
 // ─── Note Actions Hook (Cloud-First) ─────────────────────────
 export function useNoteActions() {
     const [notes, setNotes] = useAtom(notesAtom);
+    const debounceRef = useRef({});
 
     const addNote = useCallback((text) => {
         const note = {
@@ -193,11 +202,14 @@ export function useNoteActions() {
             n.id === id ? { ...n, done: !n.done, updated_at: new Date().toISOString() } : n
         ));
         // Read latest after state update
-        setTimeout(() => {
+        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+
+        debounceRef.current[id] = setTimeout(() => {
             const stored = JSON.parse(localStorage.getItem('dp-notes') || '[]');
             const note = stored.find((n) => n.id === id);
             if (note) dbUpsert('notes', note);
-        }, 50);
+            delete debounceRef.current[id];
+        }, 500);
     }, [setNotes]);
 
     const deleteNote = useCallback((id) => {
@@ -210,11 +222,14 @@ export function useNoteActions() {
         setNotes((prev) => prev.map((n) =>
             n.id === id ? { ...n, text, updated_at } : n
         ));
-        setTimeout(() => {
+        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+
+        debounceRef.current[id] = setTimeout(() => {
             const stored = JSON.parse(localStorage.getItem('dp-notes') || '[]');
             const note = stored.find((n) => n.id === id);
             if (note) dbUpsert('notes', note);
-        }, 50);
+            delete debounceRef.current[id];
+        }, 1000);
     }, [setNotes]);
 
     return { notes, addNote, toggleNote, deleteNote, editNote };
@@ -287,22 +302,28 @@ export async function hydrateFromSupabase(setTasks, setChapters, setNotes, getLo
         if (serverTasks) {
             const { merged, toSyncUp } = mergeRecords(getLocalTasks(), serverTasks);
             setTasks(merged);
-            for (const t of toSyncUp) dbUpsert('tasks', t);
-            if (toSyncUp.length) console.info(`[Sync] Pushed ${toSyncUp.length} local tasks to cloud`);
+            if (toSyncUp.length > 0) {
+                await supabase.from('tasks').upsert(toSyncUp);
+                console.info(`[Sync] Pushed ${toSyncUp.length} local tasks to cloud`);
+            }
         }
 
         if (serverChapters) {
             const { merged, toSyncUp } = mergeRecords(getLocalChapters(), serverChapters);
             setChapters(merged);
-            for (const c of toSyncUp) dbUpsert('chapters', c);
-            if (toSyncUp.length) console.info(`[Sync] Pushed ${toSyncUp.length} local chapters to cloud`);
+            if (toSyncUp.length > 0) {
+                await supabase.from('chapters').upsert(toSyncUp);
+                console.info(`[Sync] Pushed ${toSyncUp.length} local chapters to cloud`);
+            }
         }
 
         if (serverNotes) {
             const { merged, toSyncUp } = mergeRecords(getLocalNotes(), serverNotes);
             setNotes(merged);
-            for (const n of toSyncUp) dbUpsert('notes', n);
-            if (toSyncUp.length) console.info(`[Sync] Pushed ${toSyncUp.length} local notes to cloud`);
+            if (toSyncUp.length > 0) {
+                await supabase.from('notes').upsert(toSyncUp);
+                console.info(`[Sync] Pushed ${toSyncUp.length} local notes to cloud`);
+            }
         }
     } catch (e) {
         console.warn('[DB] hydration failed, using localStorage fallback:', e.message);

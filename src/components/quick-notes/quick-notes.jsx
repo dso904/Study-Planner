@@ -16,6 +16,10 @@ function NoteItem({ note, onToggle, onDelete, onEdit }) {
         if (editing && inputRef.current) inputRef.current.focus();
     }, [editing]);
 
+    useEffect(() => {
+        setText(note.text);
+    }, [note.text]);
+
     const save = () => {
         const trimmed = text.trim();
         if (trimmed && trimmed !== note.text) onEdit(note.id, trimmed);
@@ -35,8 +39,8 @@ function NoteItem({ note, onToggle, onDelete, onEdit }) {
             <button
                 onClick={() => onToggle(note.id)}
                 className={`mt-0.5 w-[18px] h-[18px] rounded-[5px] border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${note.done
-                        ? 'bg-violet-500/80 border-violet-500/80'
-                        : 'border-zinc-600 hover:border-violet-400'
+                    ? 'bg-violet-500/80 border-violet-500/80'
+                    : 'border-zinc-600 hover:border-violet-400'
                     }`}
             >
                 {note.done && <Check size={11} strokeWidth={3} className="text-white" />}

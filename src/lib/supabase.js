@@ -7,7 +7,9 @@ const appSecret = process.env.NEXT_PUBLIC_SUPABASE_APP_SECRET || '';
 export const supabase = supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey, {
         global: {
-            headers: appSecret ? { 'x-app-secret': appSecret } : {},
+            headers: {
+                'x-app-secret': appSecret,
+            },
         },
     })
     : null;
