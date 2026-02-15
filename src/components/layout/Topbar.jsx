@@ -1,129 +1,84 @@
-import {
-    Box,
-    TextInput,
-    ActionIcon,
-    useMantineColorScheme,
-    Tooltip,
-    Group,
-    Text,
-} from '@mantine/core';
-import {
-    IconSearch,
-    IconSun,
-    IconMoon,
-    IconPrinter,
-} from '@tabler/icons-react';
-import { useUIStore } from '../../lib/store';
-import { getWeekRangeLabel, isCurrentWeek } from '../../lib/dates';
+'use client';
+
+import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useAtomValue } from 'jotai';
+import { currentWeekStartAtom } from '@/lib/atoms';
+import { getWeekRangeLabel, isCurrentWeek } from '@/lib/dates';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Search, Printer } from 'lucide-react';
+import PrintModal from '@/components/print-modal';
+
+const viewTitles = {
+    '/': 'Week Planner',
+    '/dashboard': 'Dashboard',
+    '/subjects': 'Subjects & Chapters',
+    '/backlogs': 'Backlogs',
+    '/analytics': 'Analytics',
+};
 
 export default function Topbar() {
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-    const dark = colorScheme === 'dark';
-    const { activeView, currentWeekStart } = useUIStore();
-
-    const viewTitles = {
-        planner: 'Week Planner',
-        dashboard: 'Dashboard',
-        subjects: 'Subjects & Chapters',
-        backlogs: 'Backlogs',
-        settings: 'Settings',
-    };
+    const pathname = usePathname();
+    const currentWeekStart = useAtomValue(currentWeekStartAtom);
+    const [printOpen, setPrintOpen] = useState(false);
 
     return (
-        <Box
-            component="header"
-            className="no-print"
-            style={{
-                height: 64,
-                minHeight: 64,
-                padding: '0 24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid var(--mantine-color-dark-4)',
-                background: dark
-                    ? 'rgba(22, 27, 39, 0.8)'
-                    : 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(12px)',
-                position: 'sticky',
-                top: 0,
-                zIndex: 'var(--z-topbar)',
-            }}
-        >
-            {/* Left: Title + Week range */}
-            <Group gap={16}>
-                <Text size="lg" fw={700} c={dark ? 'dark.0' : 'dark.8'}>
-                    {viewTitles[activeView] || 'Day Planner'}
-                </Text>
-                {activeView === 'planner' && (
-                    <Text
-                        size="sm"
-                        c="dimmed"
-                        className="mono"
-                        style={{
-                            background: isCurrentWeek(currentWeekStart)
-                                ? 'rgba(91, 110, 225, 0.1)'
-                                : 'rgba(255,255,255,0.04)',
-                            padding: '4px 10px',
-                            borderRadius: 6,
-                            fontSize: 12,
-                        }}
-                    >
-                        {getWeekRangeLabel(currentWeekStart)}
-                    </Text>
-                )}
-            </Group>
+        <>
+            <header
+                className="no-print h-16 min-h-16 px-6 flex items-center justify-between border-b border-white/8 sticky top-0 z-40"
+                style={{
+                    background: 'oklch(0.14 0.012 280 / 80%)',
+                    backdropFilter: 'blur(12px)',
+                }}
+            >
+                {/* Left: Title + Week range */}
+                <div className="flex items-center gap-4">
+                    <h1 className="text-lg font-bold text-zinc-100">
+                        {viewTitles[pathname] || 'Day Planner'}
+                    </h1>
+                    {pathname === '/' && (
+                        <span
+                            className={`text-xs mono px-2.5 py-1 rounded-md ${isCurrentWeek(currentWeekStart)
+                                    ? 'bg-violet-500/10 text-violet-300'
+                                    : 'bg-white/4 text-zinc-500'
+                                }`}
+                        >
+                            {getWeekRangeLabel(currentWeekStart)}
+                        </span>
+                    )}
+                </div>
 
-            {/* Right: Actions */}
-            <Group gap={8}>
-                <TextInput
-                    placeholder="Search tasks..."
-                    leftSection={<IconSearch size={16} stroke={1.5} />}
-                    size="sm"
-                    variant="filled"
-                    radius="md"
-                    style={{ width: 220 }}
-                    styles={{
-                        input: {
-                            background: dark
-                                ? 'rgba(255,255,255,0.04)'
-                                : 'rgba(0,0,0,0.04)',
-                            border: '1px solid transparent',
-                            transition: 'all var(--transition-fast)',
-                            '&:focus': {
-                                background: dark
-                                    ? 'rgba(255,255,255,0.08)'
-                                    : 'rgba(0,0,0,0.06)',
-                                borderColor: 'var(--mantine-color-indigo-5)',
-                            },
-                        },
-                    }}
-                />
+                {/* Right: Search + Print */}
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                        <Input
+                            placeholder="Search tasks..."
+                            className="pl-9 w-56 bg-white/4 border-transparent focus:bg-white/8 focus:border-violet-500/40 text-sm"
+                        />
+                    </div>
 
-                <Tooltip label="Print today's plan">
-                    <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="lg"
-                        radius="md"
-                        onClick={() => window.print()}
-                    >
-                        <IconPrinter size={18} stroke={1.5} />
-                    </ActionIcon>
-                </Tooltip>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-zinc-500 hover:text-zinc-200"
+                                    onClick={() => setPrintOpen(true)}
+                                >
+                                    <Printer size={18} />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Print daily routine</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            </header>
 
-                <Tooltip label={dark ? 'Light mode' : 'Dark mode'}>
-                    <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="lg"
-                        radius="md"
-                        onClick={toggleColorScheme}
-                    >
-                        {dark ? <IconSun size={18} stroke={1.5} /> : <IconMoon size={18} stroke={1.5} />}
-                    </ActionIcon>
-                </Tooltip>
-            </Group>
-        </Box>
+            <PrintModal open={printOpen} onClose={() => setPrintOpen(false)} />
+        </>
     );
 }

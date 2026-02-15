@@ -1,155 +1,36 @@
-<div align="center">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-# ⚡ Day Planner
+## Getting Started
 
-**A cyberpunk-themed study planner built for focused students.**
-
-Plan your week. Track your progress. Own your schedule.
-
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
-[![Mantine](https://img.shields.io/badge/Mantine-7-339AF0?style=flat-square&logo=mantine&logoColor=white)](https://mantine.dev)
-[![License](https://img.shields.io/badge/License-MIT-8B5CF6?style=flat-square)](LICENSE)
-
-</div>
-
----
-
-## ✨ Features
-
-| Feature | Description |
-|---------|-------------|
-| 📅 **Weekly Grid** | 7-day planner with 1-hour time slots, current time indicator, and week navigation |
-| 🖱️ **Drag & Drop** | Rearrange tasks across days and time slots with visual feedback |
-| 📊 **Analytics** | Study hours charts, weekly trends, category breakdown donut, and study streak counter |
-| 📚 **Subjects & Chapters** | Track subjects with chapter completion status (Not Started → Mastered) and progress bars |
-| ⚠️ **Backlog Tracking** | Per-subject overdue task counts with visual warnings |
-| 🖨️ **Print** | Generate clean, formatted study schedule tables for printing |
-| 💾 **Persistent Data** | All tasks, subjects, and chapters saved to localStorage — survives page refresh |
-| 🎨 **Cyberpunk Theme** | Deep purple palette, neon accents, grid background, glassmorphism, and glow effects |
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | React 19 |
-| **Build** | Vite 6 |
-| **UI Library** | Mantine v7 (Core, Dates, Hooks, Notifications) |
-| **State** | Zustand 5 with `persist` middleware |
-| **Charts** | Recharts 2 |
-| **Drag & Drop** | @dnd-kit/core + @dnd-kit/sortable |
-| **Animations** | Framer Motion 12 + CSS keyframes |
-| **Icons** | Tabler Icons |
-| **Dates** | Day.js |
-
----
-
-## 🚀 Quick Start
+First, run the development server:
 
 ```bash
-# Clone the repository
-git clone https://github.com/YOUR_USERNAME/Day-Planner.git
-cd Day-Planner
-
-# Install dependencies
-npm install
-
-# Start development server
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
----
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-## 📦 Build for Production
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```bash
-npm run build
-npm run preview   # Preview the production build
-```
+## Learn More
 
-The production bundle is output to the `dist/` folder, ready for deployment to Vercel, Netlify, or any static hosting.
+To learn more about Next.js, take a look at the following resources:
 
----
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## 🗂️ Project Structure
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-```
-Day-Planner/
-├── public/                  # Static assets
-├── src/
-│   ├── components/
-│   │   ├── layout/          # AppShell, Sidebar, Topbar, StatusBar
-│   │   ├── tasks/           # TaskModal
-│   │   └── PrintModal.jsx   # Print schedule modal
-│   ├── lib/
-│   │   ├── store.js         # Zustand stores (Task, Subject, Chapter, UI)
-│   │   └── dates.js         # Date utilities (dayjs wrappers)
-│   ├── pages/
-│   │   ├── WeeklyPlanner.jsx  # Main weekly grid with drag-and-drop
-│   │   ├── Dashboard.jsx      # Overview stats and charts
-│   │   ├── Analytics.jsx      # Detailed study analytics
-│   │   ├── Subjects.jsx       # Subject & chapter management
-│   │   └── Backlogs.jsx       # Overdue task tracker
-│   ├── styles/
-│   │   ├── global.css         # Design tokens, base styles, animations
-│   │   ├── dashboard.css      # Command center layout
-│   │   └── weekly-grid.css    # Grid styles and DnD feedback
-│   ├── App.jsx              # Root component, header, drawer system
-│   ├── main.jsx             # Entry point
-│   └── theme.js             # Mantine theme configuration
-├── index.html
-├── package.json
-└── vite.config.js
-```
+## Deploy on Vercel
 
----
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## 📋 Usage Guide
-
-### Creating Tasks
-Click any empty time slot in the weekly grid, or use the **ADD** button. Fill in the task name, select a subject, set the time, and hit **Create**.
-
-### Drag & Drop
-Grab any task block and drag it to a different time slot or day. The task's duration is preserved automatically.
-
-### Subjects & Chapters
-Open the **Subjects** drawer from the left toolbar. Add subjects with custom colors, then add chapters within each subject. Track chapter progress from *Not Started* through *Theory*, *Practice*, *Revised*, to *Mastered*.
-
-### Analytics
-Open the **Analytics** drawer to view:
-- Daily study hours (last 7 days)
-- Weekly trend (last 4 weeks)
-- Hours by subject
-- Category breakdown (lecture, practice, revision, etc.)
-- Study streak counter
-
-### Printing
-Click the printer icon in the header. Select a specific day or "Full Week", preview the table, and hit **Print** to open the browser's print dialog.
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| Double-click task | Toggle done/pending |
-| Click empty slot | Create new task |
-| Click task | Edit task |
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-**Built with ❤️ and ⚡ by a focused student, for focused students.**
-
-</div>
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

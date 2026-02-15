@@ -1,80 +1,52 @@
-import { Box, Text, Tooltip, UnstyledButton, useMantineTheme } from '@mantine/core';
-import {
-    IconCalendarWeek,
-    IconLayoutDashboard,
-    IconBooks,
-    IconAlertTriangle,
-    IconSettings,
-    IconChevronLeft,
-    IconChevronRight,
-} from '@tabler/icons-react';
-import { useUIStore } from '../../lib/store';
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAtom } from 'jotai';
+import { sidebarCollapsedAtom } from '@/lib/atoms';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import {
+    CalendarDays,
+    LayoutDashboard,
+    BookOpen,
+    AlertTriangle,
+    BarChart3,
+    ChevronLeft,
+    ChevronRight,
+} from 'lucide-react';
 
 const navItems = [
-    { key: 'planner', label: 'Week Planner', icon: IconCalendarWeek },
-    { key: 'dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
-    { key: 'subjects', label: 'Subjects', icon: IconBooks },
-    { key: 'backlogs', label: 'Backlogs', icon: IconAlertTriangle },
-    { key: 'settings', label: 'Settings', icon: IconSettings },
+    { key: '/', label: 'Week Planner', icon: CalendarDays },
+    { key: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: '/subjects', label: 'Subjects', icon: BookOpen },
+    { key: '/backlogs', label: 'Backlogs', icon: AlertTriangle },
+    { key: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
-function NavItem({ item, active, collapsed, onClick }) {
-    const theme = useMantineTheme();
-
-    const button = (
-        <UnstyledButton
-            onClick={onClick}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: collapsed ? '10px 0' : '10px 16px',
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                borderRadius: 10,
-                width: '100%',
-                transition: 'all var(--transition-fast)',
-                background: active
-                    ? `rgba(91, 110, 225, 0.12)`
-                    : 'transparent',
-                color: active
-                    ? theme.colors.indigo[4]
-                    : theme.colors.dark[1],
-                fontWeight: active ? 600 : 400,
-                position: 'relative',
-            }}
-            onMouseEnter={(e) => {
-                if (!active) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                    e.currentTarget.style.color = theme.colors.dark[0];
-                }
-            }}
-            onMouseLeave={(e) => {
-                if (!active) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = theme.colors.dark[1];
-                }
-            }}
+function NavItem({ item, active, collapsed }) {
+    const content = (
+        <Link
+            href={item.key}
+            className={`
+                flex items-center gap-3 w-full rounded-[10px] transition-all duration-150 relative
+                ${collapsed ? 'justify-center py-2.5 px-0' : 'py-2.5 px-4'}
+                ${active
+                    ? 'bg-violet-500/12 text-violet-400 font-semibold'
+                    : 'text-zinc-400 hover:bg-white/4 hover:text-zinc-200'}
+            `}
         >
-            {/* Active indicator bar */}
             {active && (
                 <motion.div
                     layoutId="sidebar-active"
-                    style={{
-                        position: 'absolute',
-                        left: collapsed ? '50%' : 0,
-                        top: collapsed ? 'auto' : '50%',
-                        bottom: collapsed ? -2 : 'auto',
-                        transform: collapsed ? 'translateX(-50%)' : 'translateY(-50%)',
-                        width: collapsed ? 20 : 3,
-                        height: collapsed ? 3 : 24,
-                        borderRadius: 2,
-                        background: theme.colors.indigo[4],
-                    }}
+                    className={`absolute ${collapsed
+                        ? 'bottom-[-2px] left-1/2 -translate-x-1/2 w-5 h-[3px]'
+                        : 'left-0 top-1/2 -translate-y-1/2 w-[3px] h-6'
+                        } rounded-sm bg-violet-400`}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
             )}
-            <item.icon size={20} stroke={1.8} />
+            <item.icon size={20} strokeWidth={1.8} />
             <AnimatePresence>
                 {!collapsed && (
                     <motion.span
@@ -82,146 +54,86 @@ function NavItem({ item, active, collapsed, onClick }) {
                         animate={{ opacity: 1, width: 'auto' }}
                         exit={{ opacity: 0, width: 0 }}
                         transition={{ duration: 0.15 }}
-                        style={{ whiteSpace: 'nowrap', fontSize: 14 }}
+                        className="whitespace-nowrap text-sm"
                     >
                         {item.label}
                     </motion.span>
                 )}
             </AnimatePresence>
-        </UnstyledButton>
+        </Link>
     );
 
     if (collapsed) {
         return (
-            <Tooltip label={item.label} position="right" withArrow offset={12}>
-                {button}
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                    <TooltipTrigger asChild>{content}</TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={12}>
+                        {item.label}
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         );
     }
 
-    return button;
+    return content;
 }
 
 export default function Sidebar() {
-    const { sidebarCollapsed, toggleSidebar, activeView, setActiveView } = useUIStore();
+    const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
+    const pathname = usePathname();
 
     return (
-        <Box
-            component="nav"
-            className="no-print"
+        <nav
+            className="no-print fixed left-0 top-0 bottom-0 flex flex-col overflow-hidden z-50 transition-all duration-300 border-r border-white/8"
             style={{
-                position: 'fixed',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: sidebarCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)',
-                background: 'var(--mantine-color-dark-7)',
-                borderRight: '1px solid var(--mantine-color-dark-4)',
-                display: 'flex',
-                flexDirection: 'column',
-                zIndex: 'var(--z-sidebar)',
-                transition: 'width var(--transition-normal)',
-                overflow: 'hidden',
+                width: collapsed ? 'var(--sidebar-collapsed-w)' : 'var(--sidebar-w)',
+                background: 'oklch(0.15 0.012 280)',
             }}
         >
-            {/* Logo area */}
-            <Box
-                style={{
-                    padding: sidebarCollapsed ? '20px 12px' : '20px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                    borderBottom: '1px solid var(--mantine-color-dark-4)',
-                    minHeight: 64,
-                }}
+            {/* Logo */}
+            <div
+                className={`flex items-center gap-3 border-b border-white/8 min-h-16 ${collapsed ? 'justify-center px-3 py-5' : 'px-5 py-5'}`}
             >
-                <Box
-                    style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 8,
-                        background: 'linear-gradient(135deg, #5B6EE1, #8B5CF6)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                    }}
-                >
-                    <Text size="lg" fw={700} c="white" style={{ lineHeight: 1 }}>
-                        D
-                    </Text>
-                </Box>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-lg leading-none">D</span>
+                </div>
                 <AnimatePresence>
-                    {!sidebarCollapsed && (
-                        <motion.div
+                    {!collapsed && (
+                        <motion.span
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.15 }}
+                            className="text-zinc-100 font-bold whitespace-nowrap"
                         >
-                            <Text size="md" fw={700} c="var(--mantine-color-dark-0)" style={{ whiteSpace: 'nowrap' }}>
-                                Day Planner
-                            </Text>
-                        </motion.div>
+                            Day Planner
+                        </motion.span>
                     )}
                 </AnimatePresence>
-            </Box>
+            </div>
 
             {/* Nav items */}
-            <Box
-                style={{
-                    flex: 1,
-                    padding: sidebarCollapsed ? '16px 12px' : '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                }}
-            >
+            <div className={`flex-1 flex flex-col gap-1 ${collapsed ? 'px-3 py-4' : 'px-4 py-4'}`}>
                 {navItems.map((item) => (
                     <NavItem
                         key={item.key}
                         item={item}
-                        active={activeView === item.key}
-                        collapsed={sidebarCollapsed}
-                        onClick={() => setActiveView(item.key)}
+                        active={pathname === item.key}
+                        collapsed={collapsed}
                     />
                 ))}
-            </Box>
+            </div>
 
-            {/* Collapse button */}
-            <Box
-                style={{
-                    padding: '12px 16px',
-                    borderTop: '1px solid var(--mantine-color-dark-4)',
-                    display: 'flex',
-                    justifyContent: sidebarCollapsed ? 'center' : 'flex-end',
-                }}
-            >
-                <UnstyledButton
-                    onClick={toggleSidebar}
-                    style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 8,
-                        color: 'var(--mantine-color-dark-2)',
-                        transition: 'all var(--transition-fast)',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
-                        e.currentTarget.style.color = 'var(--mantine-color-dark-0)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = 'var(--mantine-color-dark-2)';
-                    }}
+            {/* Collapse toggle */}
+            <div className={`py-3 px-4 border-t border-white/8 flex ${collapsed ? 'justify-center' : 'justify-end'}`}>
+                <button
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-white/6 hover:text-zinc-200 transition-all"
                 >
-                    {sidebarCollapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
-                </UnstyledButton>
-            </Box>
-        </Box>
+                    {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                </button>
+            </div>
+        </nav>
     );
 }
