@@ -61,9 +61,11 @@ export default function WeeklyPlannerPage() {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
-  const [timePosition, setTimePosition] = useState(getCurrentTimePosition(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour));
+  const [timePosition, setTimePosition] = useState(null);
 
   useEffect(() => {
+    // Immediately set correct position using client's local time (fixes SSR timezone mismatch)
+    setTimePosition(getCurrentTimePosition(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour));
     const interval = setInterval(() => {
       setTimePosition(getCurrentTimePosition(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour));
     }, 60000);
@@ -188,7 +190,7 @@ export default function WeeklyPlannerPage() {
           ))}
 
           {/* Current time line */}
-          {isThisWeek && <div className="current-time-line" style={{ top: `calc(${timePosition}% + 50px)` }} />}
+          {isThisWeek && timePosition !== null && <div className="current-time-line" style={{ top: `calc(${timePosition}% + 50px)` }} />}
         </div>
       </div>
 
