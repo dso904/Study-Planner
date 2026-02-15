@@ -270,11 +270,6 @@
   background: oklch(0.65 0.18 280 / 3%);
 }
 
-.time-slot-cell.drop-target {
-  background: oklch(0.65 0.18 280 / 10%);
-  outline: 2px dashed oklch(0.65 0.18 280 / 30%);
-  outline-offset: -2px;
-}
 
 .empty-slot-hint {
   display: flex;

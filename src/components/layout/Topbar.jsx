@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAtomValue } from 'jotai';
-import { currentWeekStartAtom } from '@/lib/atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { currentWeekStartAtom, notesPanelOpenAtom, notesAtom } from '@/lib/atoms';
 import { getWeekRangeLabel, isCurrentWeek } from '@/lib/dates';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Search, Printer } from 'lucide-react';
+import { Search, Printer, StickyNote } from 'lucide-react';
 import PrintModal from '@/components/print-modal';
 
 const viewTitles = {
@@ -22,6 +22,9 @@ export default function Topbar() {
     const pathname = usePathname();
     const currentWeekStart = useAtomValue(currentWeekStartAtom);
     const [printOpen, setPrintOpen] = useState(false);
+    const [notesOpen, setNotesOpen] = useAtom(notesPanelOpenAtom);
+    const notes = useAtomValue(notesAtom) || [];
+    const undoneCount = notes.filter((n) => !n.done).length;
 
     return (
         <>
@@ -49,7 +52,7 @@ export default function Topbar() {
                     )}
                 </div>
 
-                {/* Right: Search + Print */}
+                {/* Right: Search + Notes + Print */}
                 <div className="flex items-center gap-2">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
@@ -58,6 +61,28 @@ export default function Topbar() {
                             className="pl-9 w-56 bg-white/4 border-transparent focus:bg-white/8 focus:border-violet-500/40 text-sm"
                         />
                     </div>
+
+                    {/* Quick Notes toggle */}
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`relative text-zinc-500 hover:text-zinc-200 ${notesOpen ? 'text-amber-400 bg-amber-500/10' : ''}`}
+                                    onClick={() => setNotesOpen(!notesOpen)}
+                                >
+                                    <StickyNote size={18} />
+                                    {undoneCount > 0 && (
+                                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-violet-500 text-[9px] font-bold text-white flex items-center justify-center leading-none">
+                                            {undoneCount > 9 ? '9+' : undoneCount}
+                                        </span>
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Quick Notes</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
 
                     <TooltipProvider>
                         <Tooltip>

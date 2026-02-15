@@ -96,37 +96,46 @@ export default function DashboardPage() {
     const subjects = SUBJECTS;
 
     /* ── Today ── */
-    const today = dayjs().format('YYYY-MM-DD');
-    const todayTasks = tasks.filter((t) => t.date === today);
-    const todayDone = todayTasks.filter((t) => t.status === 'done').length;
-    const todayTotal = todayTasks.length;
+    const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
+    const { todayDone, todayTotal } = useMemo(() => {
+        const todayTasks = tasks.filter((t) => t.date === today);
+        return { todayDone: todayTasks.filter((t) => t.status === 'done').length, todayTotal: todayTasks.length };
+    }, [tasks, today]);
 
     /* ── This week ── */
-    const weekStart = dayjs().startOf('week').add(1, 'day');
-    const weekTasks = tasks.filter((t) => {
-        const d = dayjs(t.date);
-        return d.isAfter(weekStart.subtract(1, 'day')) && d.isBefore(weekStart.add(7, 'day'));
-    });
-    const weekDone = weekTasks.filter((t) => t.status === 'done').length;
-    const weekTotal = weekTasks.length;
-    const weekHours = weekTasks.filter((t) => t.status === 'done').reduce((acc, t) => acc + getHours(t), 0);
-    const weekProgress = weekTotal > 0 ? Math.round((weekDone / weekTotal) * 100) : 0;
+    const { weekDone, weekTotal, weekHours, weekProgress, weekTasks } = useMemo(() => {
+        const weekStart = dayjs().startOf('week').add(1, 'day');
+        const wt = tasks.filter((t) => {
+            const d = dayjs(t.date);
+            return d.isAfter(weekStart.subtract(1, 'day')) && d.isBefore(weekStart.add(7, 'day'));
+        });
+        const done = wt.filter((t) => t.status === 'done').length;
+        const total = wt.length;
+        const hours = wt.filter((t) => t.status === 'done').reduce((acc, t) => acc + getHours(t), 0);
+        return { weekDone: done, weekTotal: total, weekHours: hours, weekProgress: total > 0 ? Math.round((done / total) * 100) : 0, weekTasks: wt };
+    }, [tasks]);
 
     /* ── All-time stats ── */
-    const totalTasks = tasks.length;
-    const totalDone = tasks.filter((t) => t.status === 'done').length;
-    const completionRate = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;
-    const backlogs = tasks.filter((t) => t.status !== 'done' && t.status !== 'skipped' && dayjs(t.date).isBefore(dayjs(), 'day'));
+    const { totalTasks, totalDone, completionRate, backlogs } = useMemo(() => {
+        const total = tasks.length;
+        const done = tasks.filter((t) => t.status === 'done').length;
+        const bl = tasks.filter((t) => t.status !== 'done' && t.status !== 'skipped' && dayjs(t.date).isBefore(dayjs(), 'day'));
+        return { totalTasks: total, totalDone: done, completionRate: total ? Math.round((done / total) * 100) : 0, backlogs: bl };
+    }, [tasks]);
 
     /* ── Hours by Subject (this week) ── */
-    const chartData = subjects.map((subject) => {
-        const hours = weekTasks.filter((t) => t.subject_id === subject.id && t.status === 'done').reduce((acc, t) => acc + getHours(t), 0);
-        return { name: subject.name, hours: Math.round(hours * 10) / 10, color: subject.color };
-    });
+    const chartData = useMemo(() => {
+        return subjects.map((subject) => {
+            const hours = weekTasks.filter((t) => t.subject_id === subject.id && t.status === 'done').reduce((acc, t) => acc + getHours(t), 0);
+            return { name: subject.name, hours: Math.round(hours * 10) / 10, color: subject.color };
+        });
+    }, [weekTasks, subjects]);
 
     /* ── Upcoming Tasks ── */
-    const upcoming = tasks.filter((t) => t.status === 'pending' && (t.date === today || dayjs(t.date).isAfter(dayjs(), 'day')))
-        .sort((a, b) => `${a.date}_${a.start_time}`.localeCompare(`${b.date}_${b.start_time}`)).slice(0, 8);
+    const upcoming = useMemo(() => {
+        return tasks.filter((t) => t.status === 'pending' && (t.date === today || dayjs(t.date).isAfter(dayjs(), 'day')))
+            .sort((a, b) => `${a.date}_${a.start_time}`.localeCompare(`${b.date}_${b.start_time}`)).slice(0, 8);
+    }, [tasks, today]);
 
     /* ── Daily Study Hours (14 days) ── */
     const dailyData = useMemo(() => {

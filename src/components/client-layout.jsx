@@ -6,6 +6,7 @@ import Sidebar from '@/components/layout/sidebar';
 import Topbar from '@/components/layout/topbar';
 import StatusBar from '@/components/layout/status-bar';
 import StoreHydrator from '@/components/store-hydrator';
+import QuickNotes from '@/components/quick-notes/quick-notes';
 
 function AppShell({ children }) {
     const collapsed = useAtomValue(sidebarCollapsedAtom);
@@ -24,6 +25,8 @@ function AppShell({ children }) {
                 </main>
                 <StatusBar />
             </div>
+            {/* Quick Notes overlay — accessible from any page */}
+            <QuickNotes />
         </div>
     );
 }
