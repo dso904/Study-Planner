@@ -37,8 +37,8 @@ export default function StatusBar() {
                     <span className="text-zinc-500">Streak: <span className="font-semibold text-orange-400 mono">0 days</span></span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <CheckCheck size={14} className="text-violet-400" />
-                    <span className="text-zinc-500">Today: <span className="font-semibold text-violet-400 mono">{todayDone}/{todayTotal}</span></span>
+                    <CheckCheck size={14} className="text-rose-400" />
+                    <span className="text-zinc-500">Today: <span className="font-semibold text-rose-400 mono">{todayDone}/{todayTotal}</span></span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <Clock size={14} className="text-teal-400" />

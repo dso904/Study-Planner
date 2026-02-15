@@ -26,24 +26,13 @@ function NavItem({ item, active, collapsed }) {
         <Link
             href={item.key}
             className={`
-                flex items-center gap-3 w-full rounded-[10px] transition-all duration-150 relative
-                ${collapsed ? 'justify-center py-2.5 px-0' : 'py-2.5 px-4'}
-                ${active
-                    ? 'bg-violet-500/12 text-violet-400 font-semibold'
-                    : 'text-zinc-400 hover:bg-white/4 hover:text-zinc-200'}
+                sidebar-nav-item
+                flex items-center gap-3 w-full rounded-xl transition-all duration-200 relative
+                ${collapsed ? 'justify-center py-3 px-0' : 'py-2.5 px-4'}
+                ${active ? 'active font-semibold text-white' : 'text-zinc-500 hover:text-zinc-200'}
             `}
         >
-            {active && (
-                <motion.div
-                    layoutId="sidebar-active"
-                    className={`absolute ${collapsed
-                        ? 'bottom-[-2px] left-1/2 -translate-x-1/2 w-5 h-[3px]'
-                        : 'left-0 top-1/2 -translate-y-1/2 w-[3px] h-6'
-                        } rounded-sm bg-violet-400`}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-            )}
-            <item.icon size={20} strokeWidth={1.8} />
+            <item.icon size={20} strokeWidth={1.8} className="relative z-10 shrink-0" />
             <AnimatePresence>
                 {!collapsed && (
                     <motion.span
@@ -51,7 +40,7 @@ function NavItem({ item, active, collapsed }) {
                         animate={{ opacity: 1, width: 'auto' }}
                         exit={{ opacity: 0, width: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="whitespace-nowrap text-sm"
+                        className="whitespace-nowrap text-sm relative z-10"
                     >
                         {item.label}
                     </motion.span>
@@ -85,14 +74,13 @@ export default function Sidebar() {
             className="no-print fixed left-0 top-0 bottom-0 flex flex-col overflow-hidden z-50 transition-all duration-300 border-r border-white/8"
             style={{
                 width: collapsed ? 'var(--sidebar-collapsed-w)' : 'var(--sidebar-w)',
-                background: 'oklch(0.15 0.012 280)',
+                background: 'oklch(0.13 0.012 280)',
             }}
         >
             {/* Header: Hamburger + Logo */}
             <div
                 className={`flex items-center border-b border-white/8 min-h-16 ${collapsed ? 'justify-center px-3 py-5' : 'px-4 py-5'}`}
             >
-                {/* Hamburger toggle — always visible */}
                 <button
                     onClick={() => setCollapsed(!collapsed)}
                     className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:bg-white/6 hover:text-zinc-200 transition-all flex-shrink-0"
@@ -101,7 +89,6 @@ export default function Sidebar() {
                     <Menu size={18} strokeWidth={2} />
                 </button>
 
-                {/* Logo text — only when expanded */}
                 <AnimatePresence>
                     {!collapsed && (
                         <motion.div
@@ -111,7 +98,7 @@ export default function Sidebar() {
                             transition={{ duration: 0.15 }}
                             className="flex items-center gap-3 ml-3 overflow-hidden"
                         >
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #f43f5e, #8b5cf6)' }}>
                                 <span className="text-white font-bold text-lg leading-none">D</span>
                             </div>
                             <span className="text-zinc-100 font-bold whitespace-nowrap">
@@ -123,7 +110,7 @@ export default function Sidebar() {
             </div>
 
             {/* Nav items */}
-            <div className={`flex-1 flex flex-col gap-1 ${collapsed ? 'px-3 py-4' : 'px-4 py-4'}`}>
+            <div className={`flex-1 flex flex-col gap-1.5 ${collapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
                 {navItems.map((item) => (
                     <NavItem
                         key={item.key}

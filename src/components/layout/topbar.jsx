@@ -43,7 +43,7 @@ export default function Topbar() {
                     {pathname === '/' && (
                         <span
                             className={`text-xs mono px-2.5 py-1 rounded-md ${isCurrentWeek(currentWeekStart)
-                                ? 'bg-violet-500/10 text-violet-300'
+                                ? 'bg-rose-500/10 text-rose-300'
                                 : 'bg-white/4 text-zinc-500'
                                 }`}
                         >
@@ -58,7 +58,7 @@ export default function Topbar() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                         <Input
                             placeholder="Search tasks..."
-                            className="pl-9 w-56 bg-white/4 border-transparent focus:bg-white/8 focus:border-violet-500/40 text-sm"
+                            className="pl-9 w-56 bg-white/4 border-transparent focus:bg-white/8 focus:border-rose-500/40 text-sm"
                         />
                     </div>
 
@@ -74,7 +74,7 @@ export default function Topbar() {
                                 >
                                     <StickyNote size={18} />
                                     {undoneCount > 0 && (
-                                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-violet-500 text-[9px] font-bold text-white flex items-center justify-center leading-none">
+                                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center leading-none">
                                             {undoneCount > 9 ? '9+' : undoneCount}
                                         </span>
                                     )}

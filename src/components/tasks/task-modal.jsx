@@ -12,8 +12,71 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, ChevronDown, Check } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+/* ─── Time Spinner Component ─── */
+function TimeSpinner({ value, onChange, label }) {
+    const [hours, minutes] = (value || '00:00').split(':').map(Number);
+
+    const update = (h, m) => {
+        onChange(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    };
+
+    const incHour = () => update((hours + 1) % 24, minutes);
+    const decHour = () => update((hours - 1 + 24) % 24, minutes);
+    const incMin = () => update(hours, (minutes + 5) % 60);
+    const decMin = () => update(hours, (minutes - 5 + 60) % 60);
+
+    const handleWheel = (e, type) => {
+        e.preventDefault();
+        if (type === 'hour') {
+            e.deltaY < 0 ? incHour() : decHour();
+        } else {
+            e.deltaY < 0 ? incMin() : decMin();
+        }
+    };
+
+    return (
+        <div>
+            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">{label}</Label>
+            <div className="flex items-center gap-1 mt-1 rounded-md px-2 py-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                {/* Hours */}
+                <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'hour')}>
+                    <button type="button" onClick={incHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                        <ChevronUp size={14} />
+                    </button>
+                    <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
+                        {String(hours).padStart(2, '0')}
+                    </span>
+                    <button type="button" onClick={decHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                        <ChevronDown size={14} />
+                    </button>
+                </div>
+
+                <span className="text-zinc-500 font-bold text-sm select-none">:</span>
+
+                {/* Minutes */}
+                <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'minute')}>
+                    <button type="button" onClick={incMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                        <ChevronUp size={14} />
+                    </button>
+                    <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
+                        {String(minutes).padStart(2, '0')}
+                    </span>
+                    <button type="button" onClick={decMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                        <ChevronDown size={14} />
+                    </button>
+                </div>
+
+                {/* AM/PM label */}
+                <span className="text-[9px] font-semibold text-zinc-500 mono ml-1 select-none">
+                    {hours < 12 ? 'AM' : 'PM'}
+                </span>
+            </div>
+        </div>
+    );
+}
 
 const categories = [
     { value: 'lecture', label: 'Lecture', emoji: '📺', color: '#8b5cf6' },
@@ -149,7 +212,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
     const allChapters = useAtomValue(chaptersAtom) || [];
     const { addTask, updateTask, deleteTask } = useTaskActions();
     const [form, setForm] = useState(initialForm);
-    const isEditing = !!task;
+    const wasEditingRef = useRef(false);
+    const isEditing = open ? !!task : wasEditingRef.current;
 
     const subjectOptions = useMemo(() => [
         { value: '', label: 'No subject', emoji: '📂', color: '#64748b' },
@@ -169,6 +233,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
     }, [allChapters, form.subject_id, subjects]);
 
     useEffect(() => {
+        if (!open) return; // Don't reset form when closing — prevents flash
+        wasEditingRef.current = !!task;
         if (task) {
             setForm({
                 title: task.title || '', subject_id: task.subject_id || '', subject_name: task.subject_name || '',
@@ -233,7 +299,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                             value={form.title}
                             onChange={(e) => updateField('title', e.target.value)}
                             autoFocus
-                            className="bg-white/5 border-white/10 focus:border-violet-500/40 mt-1"
+                            className="bg-white/5 border-white/10 focus:border-rose-500/40 mt-1"
                         />
                     </div>
 
@@ -243,14 +309,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                             <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Date</Label>
                             <Input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className="bg-white/5 border-white/10 mt-1" />
                         </div>
-                        <div>
-                            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Start</Label>
-                            <Input type="time" value={form.start_time} onChange={(e) => updateField('start_time', e.target.value)} className="bg-white/5 border-white/10 mt-1" />
-                        </div>
-                        <div>
-                            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">End</Label>
-                            <Input type="time" value={form.end_time} onChange={(e) => updateField('end_time', e.target.value)} className="bg-white/5 border-white/10 mt-1" />
-                        </div>
+                        <TimeSpinner label="Start" value={form.start_time} onChange={(v) => updateField('start_time', v)} />
+                        <TimeSpinner label="End" value={form.end_time} onChange={(v) => updateField('end_time', v)} />
                     </div>
 
                     {/* Subject + Chapter */}
@@ -341,15 +401,13 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                             </Button>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" onClick={onClose} className="text-zinc-400">Cancel</Button>
-                        <Button
-                            onClick={handleSave}
-                            disabled={!form.title.trim()}
-                            className="bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-bold tracking-wide hover:from-indigo-600 hover:to-violet-600"
-                        >
-                            {isEditing ? 'SAVE' : 'CREATE'}
-                        </Button>
+                    <div className="flex items-center gap-3">
+                        <button type="button" onClick={onClose} className="futuristic-btn futuristic-btn-ghost">
+                            Cancel
+                        </button>
+                        <button type="button" onClick={handleSave} disabled={!form.title.trim()} className="futuristic-btn">
+                            {isEditing ? 'Save' : 'Create'}
+                        </button>
                     </div>
                 </DialogFooter>
             </DialogContent>

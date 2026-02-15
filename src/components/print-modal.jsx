@@ -303,7 +303,7 @@ export default function PrintModal({ open, onClose }) {
             <DialogContent className="sm:max-w-[720px] max-h-[85vh] overflow-hidden bg-zinc-900 border-white/10">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Printer size={18} className="text-violet-400" />
+                        <Printer size={18} className="text-rose-400" />
                         <span className="neon-text font-extrabold text-lg">PRINT ROUTINE</span>
                     </DialogTitle>
                 </DialogHeader>
@@ -317,9 +317,9 @@ export default function PrintModal({ open, onClose }) {
                             className={`
                                 flex-1 flex flex-col items-center py-2 rounded-md transition-all text-center
                                 ${selectedDate === day.date
-                                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+                                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                                     : 'text-zinc-500 hover:bg-white/4 hover:text-zinc-300 border border-transparent'}
-                                ${day.isToday ? 'ring-1 ring-violet-500/20' : ''}
+                                ${day.isToday ? 'ring-1 ring-rose-500/20' : ''}
                             `}
                         >
                             <span className="mono text-[8px] font-semibold uppercase tracking-wider">{day.dayName}</span>
@@ -442,7 +442,7 @@ export default function PrintModal({ open, onClose }) {
                                     return (
                                         <tr key={task.id} className="border-b border-white/4 hover:bg-white/3">
                                             <td className="py-1.5 px-2">
-                                                <div className={`w-3.5 h-3.5 rounded-sm border-2 ${task.status === 'done' ? 'bg-violet-500 border-violet-500' : 'border-zinc-600'}`}>
+                                                <div className={`w-3.5 h-3.5 rounded-sm border-2 ${task.status === 'done' ? 'bg-rose-500 border-rose-500' : 'border-zinc-600'}`}>
                                                     {task.status === 'done' && <span className="text-white text-[8px] flex items-center justify-center">✓</span>}
                                                 </div>
                                             </td>
@@ -475,16 +475,14 @@ export default function PrintModal({ open, onClose }) {
                     )}
                 </div>
 
-                <DialogFooter className="flex items-center justify-end gap-2 mt-2">
-                    <Button variant="ghost" onClick={onClose} className="text-zinc-400">Cancel</Button>
-                    <Button
-                        onClick={handlePrint}
-                        disabled={dayTasks.length === 0}
-                        className="bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-bold tracking-wide hover:from-indigo-600 hover:to-violet-600"
-                    >
-                        <Printer size={14} className="mr-2" />
-                        PRINT
-                    </Button>
+                <DialogFooter className="flex items-center justify-end gap-3 mt-2">
+                    <button type="button" onClick={onClose} className="futuristic-btn futuristic-btn-ghost">
+                        Cancel
+                    </button>
+                    <button type="button" onClick={handlePrint} disabled={dayTasks.length === 0} className="futuristic-btn">
+                        <Printer size={14} />
+                        Print
+                    </button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

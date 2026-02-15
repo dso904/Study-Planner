@@ -1,58 +1,75 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import { tasksAtom, useTaskActions, useWeekNavigation, SCHEDULE } from '@/lib/atoms';
 import { getWeekDays, getTimeSlots, getWeekRangeLabel, isCurrentWeek, getCurrentTimePosition, formatTime, dayjs } from '@/lib/dates';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, CalendarDays, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, Plus, Check } from 'lucide-react';
 import TaskModal from '@/components/tasks/task-modal';
 
 const subjectColorMap = {
-  physics: { bg: 'rgba(34,211,238,0.12)', border: '#22d3ee' },
-  chemistry: { bg: 'rgba(244,114,182,0.12)', border: '#f472b6' },
-  maths: { bg: 'rgba(251,146,60,0.12)', border: '#fb923c' },
-  biology: { bg: 'rgba(52,211,153,0.12)', border: '#34d399' },
-  english: { bg: 'rgba(167,139,250,0.12)', border: '#a78bfa' },
-  default: { bg: 'rgba(167,139,250,0.12)', border: '#8b5cf6' },
+  physics: { bg: 'rgba(250,204,21,0.35)', border: '#facc15' },
+  chemistry: { bg: 'rgba(244,114,182,0.35)', border: '#f472b6' },
+  maths: { bg: 'rgba(239,68,68,0.35)', border: '#ef4444' },
+  biology: { bg: 'rgba(52,211,153,0.35)', border: '#34d399' },
+  english: { bg: 'rgba(167,139,250,0.35)', border: '#a78bfa' },
+  default: { bg: 'rgba(167,139,250,0.35)', border: '#8b5cf6' },
 };
 
 function getTaskColor(subjectId = '') {
   return subjectColorMap[subjectId] || subjectColorMap.default;
 }
 
-/* ─── Task Block ─── */
-function TaskBlock({ task, onClick, onDoubleClick }) {
+/* ─── Positioned Task Block ─── */
+function TaskBlock({ task, style, onClick, onToggleStatus }) {
   const color = getTaskColor(task.subject_id);
+  const isDone = task.status === 'done';
   return (
     <div
-      className={`task-block ${task.status}`}
+      className={`task-block-abs ${task.status}`}
       style={{
+        ...style,
         background: color.bg,
         borderLeftColor: color.border,
       }}
       onClick={onClick}
-      onDoubleClick={onDoubleClick}
     >
-      <div className="task-block-title">{task.title}</div>
-      <div className="task-block-time">{formatTime(task.start_time)}–{formatTime(task.end_time)}</div>
-      <div className="task-block-category">{task.category}</div>
+      <div className="task-block-title" style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>{task.title}</div>
+      <div className="task-block-time" style={{ color: 'rgba(255,255,255,0.8)' }}>{formatTime(task.start_time)}–{formatTime(task.end_time)}</div>
+      <div className="task-block-category" style={{ color: 'rgba(255,255,255,0.65)' }}>{task.category}</div>
+      {/* Quick-complete button */}
+      <button
+        type="button"
+        className={`task-block-check ${isDone ? 'is-done' : ''}`}
+        title={isDone ? 'Mark as pending' : 'Mark as done'}
+        onClick={(e) => { e.stopPropagation(); onToggleStatus(e, task); }}
+      >
+        <Check size={11} strokeWidth={3} />
+      </button>
     </div>
   );
 }
 
 /* ─── Time Slot Cell ─── */
-function TimeSlotCell({ isToday, children, onClick }) {
+function TimeSlotCell({ isToday, onClick }) {
   return (
     <div
       className={`time-slot-cell ${isToday ? 'today' : ''}`}
       onClick={onClick}
     >
-      {children}
+      <div className="empty-slot-hint">
+        <Plus size={10} className="text-zinc-700" />
+      </div>
     </div>
   );
 }
+
+/* ─── Constants ─── */
+const SLOT_HEIGHT = 54; // matches min-height on .time-slot-cell
+const HEADER_HEIGHT = 58; // approximate height of the header row
+const TIME_COL_WIDTH = 70; // width of the time label column
 
 export default function WeeklyPlannerPage() {
   const { currentWeekStart, goToPreviousWeek, goToNextWeek, goToThisWeek } = useWeekNavigation();
@@ -62,9 +79,9 @@ export default function WeeklyPlannerPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [timePosition, setTimePosition] = useState(null);
+  const gridRef = useRef(null);
 
   useEffect(() => {
-    // Immediately set correct position using client's local time (fixes SSR timezone mismatch)
     setTimePosition(getCurrentTimePosition(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour));
     const interval = setInterval(() => {
       setTimePosition(getCurrentTimePosition(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour));
@@ -75,16 +92,14 @@ export default function WeeklyPlannerPage() {
   const weekDays = useMemo(() => getWeekDays(currentWeekStart), [currentWeekStart]);
   const timeSlots = useMemo(() => getTimeSlots(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour, 60), []);
 
-  // Pre-bucket tasks into a Map for O(1) lookup per cell
-  const tasksBySlot = useMemo(() => {
+  // Group tasks by date for overlay rendering
+  const tasksByDate = useMemo(() => {
     const map = new Map();
     const weekDateSet = new Set(weekDays.map((d) => d.date));
     for (const t of tasks) {
       if (!t.date || !t.start_time || !weekDateSet.has(t.date)) continue;
-      const hour = parseInt(t.start_time.split(':')[0], 10);
-      const slotKey = `${t.date}_${String(hour).padStart(2, '0')}:00`;
-      if (!map.has(slotKey)) map.set(slotKey, []);
-      map.get(slotKey).push(t);
+      if (!map.has(t.date)) map.set(t.date, []);
+      map.get(t.date).push(t);
     }
     return map;
   }, [tasks, weekDays]);
@@ -95,19 +110,38 @@ export default function WeeklyPlannerPage() {
     setTaskModalOpen(true);
   };
 
-  const handleTaskClick = (e, task) => {
+  const handleTaskClick = useCallback((e, task) => {
     e.stopPropagation();
     setEditingTask(task);
     setSelectedSlot(null);
     setTaskModalOpen(true);
-  };
+  }, []);
 
-  const handleQuickToggle = (e, task) => {
+  const handleQuickToggle = useCallback((e, task) => {
     e.stopPropagation();
     updateTask(task.id, { status: task.status === 'done' ? 'pending' : 'done' });
-  };
+  }, [updateTask]);
 
   const isThisWeek = isCurrentWeek(currentWeekStart);
+
+  // Calculate task block position in pixels
+  const getTaskPosition = (task, dayIndex) => {
+    const startParts = task.start_time.split(':');
+    const endParts = (task.end_time || task.start_time).split(':');
+    const startHour = parseInt(startParts[0], 10);
+    const startMin = parseInt(startParts[1] || '0', 10);
+    const endHour = parseInt(endParts[0], 10);
+    const endMin = parseInt(endParts[1] || '0', 10);
+
+    const startOffset = (startHour - SCHEDULE.dayStartHour) + startMin / 60;
+    const endOffset = (endHour - SCHEDULE.dayStartHour) + endMin / 60;
+    const durationSlots = Math.max(endOffset - startOffset, 0.5); // minimum half-slot
+
+    const top = HEADER_HEIGHT + startOffset * SLOT_HEIGHT;
+    const height = durationSlots * SLOT_HEIGHT - 2; // small gap
+
+    return { top, height };
+  };
 
   return (
     <>
@@ -120,7 +154,7 @@ export default function WeeklyPlannerPage() {
           <Button
             variant={isThisWeek ? 'secondary' : 'ghost'}
             size="sm"
-            className={`h-7 text-xs font-semibold tracking-wide ${isThisWeek ? 'bg-violet-500/15 text-violet-300 hover:bg-violet-500/20' : 'text-zinc-400'}`}
+            className={`h-7 text-xs font-semibold tracking-wide ${isThisWeek ? 'bg-rose-500/15 text-rose-300 hover:bg-rose-500/20' : 'text-zinc-400'}`}
             onClick={goToThisWeek}
           >
             <CalendarDays size={14} className="mr-1" />
@@ -136,7 +170,7 @@ export default function WeeklyPlannerPage() {
 
         <Button
           size="sm"
-          className="h-7 text-xs font-semibold bg-violet-500/15 text-violet-300 hover:bg-violet-500/25"
+          className="h-7 text-xs font-semibold bg-rose-500/15 text-rose-300 hover:bg-rose-500/25"
           onClick={() => { setSelectedSlot({ date: dayjs().format('YYYY-MM-DD'), time: '09:00' }); setEditingTask(null); setTaskModalOpen(true); }}
         >
           <Plus size={14} className="mr-1" />
@@ -146,7 +180,7 @@ export default function WeeklyPlannerPage() {
 
       {/* Grid */}
       <div className="week-grid-container">
-        <div className="week-grid" style={{ position: 'relative' }}>
+        <div className="week-grid" ref={gridRef} style={{ position: 'relative' }}>
           {/* Header */}
           <div className="week-grid-header">
             <div className="week-grid-header-cell">
@@ -161,33 +195,48 @@ export default function WeeklyPlannerPage() {
             ))}
           </div>
 
-          {/* Time rows */}
+          {/* Time rows (empty cells for the grid lines) */}
           {timeSlots.map((slot) => (
             <div key={slot.time} className="week-grid-header">
               <div className="time-label-cell">{slot.label}</div>
-              {weekDays.map((day) => {
-                const cellId = `${day.date}_${slot.time}`;
-                const cellTasks = tasksBySlot.get(cellId) || [];
-                return (
-                  <TimeSlotCell key={cellId} isToday={day.isToday} onClick={() => handleSlotClick(day.date, slot.time)}>
-                    {cellTasks.map((task) => (
-                      <TaskBlock
-                        key={task.id}
-                        task={task}
-                        onClick={(e) => handleTaskClick(e, task)}
-                        onDoubleClick={(e) => handleQuickToggle(e, task)}
-                      />
-                    ))}
-                    {cellTasks.length === 0 && (
-                      <div className="empty-slot-hint">
-                        <Plus size={10} className="text-zinc-700" />
-                      </div>
-                    )}
-                  </TimeSlotCell>
-                );
-              })}
+              {weekDays.map((day) => (
+                <TimeSlotCell
+                  key={`${day.date}_${slot.time}`}
+                  isToday={day.isToday}
+                  onClick={() => handleSlotClick(day.date, slot.time)}
+                />
+              ))}
             </div>
           ))}
+
+          {/* Task overlay layer — absolutely positioned task blocks */}
+          {weekDays.map((day, dayIndex) => {
+            const dayTasks = tasksByDate.get(day.date) || [];
+            if (dayTasks.length === 0) return null;
+            return dayTasks.map((task) => {
+              const pos = getTaskPosition(task, dayIndex);
+              // Each day column is (100% - TIME_COL_WIDTH) / 7 wide
+              const colWidthPercent = `calc((100% - ${TIME_COL_WIDTH}px) / 7)`;
+              const colLeft = `calc(${TIME_COL_WIDTH}px + ${dayIndex} * (100% - ${TIME_COL_WIDTH}px) / 7 + 3px)`;
+              return (
+                <TaskBlock
+                  key={task.id}
+                  task={task}
+                  style={{
+                    position: 'absolute',
+                    top: `${pos.top}px`,
+                    height: `${pos.height}px`,
+                    left: colLeft,
+                    width: `calc(${colWidthPercent} - 6px)`,
+                    zIndex: 5,
+                    overflow: 'hidden',
+                  }}
+                  onClick={(e) => handleTaskClick(e, task)}
+                  onToggleStatus={(e, t) => handleQuickToggle(e, t)}
+                />
+              );
+            });
+          })}
 
           {/* Current time line */}
           {isThisWeek && timePosition !== null && <div className="current-time-line" style={{ top: `calc(${timePosition}% + 50px)` }} />}
@@ -204,3 +253,4 @@ export default function WeeklyPlannerPage() {
     </>
   );
 }
+

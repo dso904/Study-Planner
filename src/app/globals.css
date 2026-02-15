@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -105,7 +106,7 @@
   --card-foreground: oklch(0.93 0.005 280);
   --popover: oklch(0.17 0.012 280);
   --popover-foreground: oklch(0.93 0.005 280);
-  --primary: oklch(0.65 0.18 280);
+  --primary: oklch(0.65 0.22 15);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.22 0.012 280);
   --secondary-foreground: oklch(0.93 0.005 280);
@@ -116,20 +117,20 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.65 0.18 280);
-  --chart-1: oklch(0.65 0.18 280);
+  --ring: oklch(0.65 0.22 15);
+  --chart-1: oklch(0.645 0.246 16.439);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.15 0.012 280);
+  --chart-5: oklch(0.65 0.18 280);
+  --sidebar: oklch(0.13 0.012 280);
   --sidebar-foreground: oklch(0.93 0.005 280);
-  --sidebar-primary: oklch(0.65 0.18 280);
+  --sidebar-primary: oklch(0.65 0.22 15);
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.22 0.012 280);
   --sidebar-accent-foreground: oklch(0.93 0.005 280);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.65 0.18 280);
+  --sidebar-ring: oklch(0.65 0.22 15);
 }
 
 @layer base {
@@ -169,7 +170,7 @@
 
 /* ─── Neon Glow Text ─── */
 .neon-text {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  background: linear-gradient(135deg, #f43f5e, #fb923c, #facc15);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -179,8 +180,8 @@
 .week-grid-container {
   overflow: auto;
   border-radius: 10px;
-  border: 1px solid oklch(1 0 0 / 6%);
-  background: oklch(0.14 0.012 280);
+  border: 1px solid oklch(1 0 0 / 10%);
+  background: oklch(0.155 0.014 280);
 }
 
 .week-grid {
@@ -196,8 +197,8 @@
 .week-grid-header-cell {
   padding: 8px 4px;
   text-align: center;
-  border-bottom: 1px solid oklch(1 0 0 / 6%);
-  border-right: 1px solid oklch(1 0 0 / 4%);
+  border-bottom: 1px solid oklch(1 0 0 / 10%);
+  border-right: 1px solid oklch(1 0 0 / 7%);
   font-size: 11px;
 }
 
@@ -206,7 +207,7 @@
 }
 
 .week-grid-header-cell.today {
-  background: oklch(0.65 0.18 280 / 6%);
+  background: oklch(0.65 0.22 15 / 10%);
 }
 
 .day-header-name {
@@ -226,8 +227,8 @@
 }
 
 .day-header-number.today {
-  color: #8b5cf6;
-  text-shadow: 0 0 12px oklch(0.65 0.18 280 / 40%);
+  color: #f43f5e;
+  text-shadow: 0 0 12px oklch(0.65 0.22 15 / 40%);
 }
 
 .day-header-month {
@@ -240,9 +241,10 @@
   padding: 8px 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: oklch(0.45 0.02 280);
-  border-bottom: 1px solid oklch(1 0 0 / 4%);
-  border-right: 1px solid oklch(1 0 0 / 6%);
+  font-weight: 600;
+  color: oklch(0.65 0.04 280);
+  border-bottom: 1px solid oklch(1 0 0 / 8%);
+  border-right: 1px solid oklch(1 0 0 / 10%);
   display: flex;
   align-items: flex-start;
   white-space: nowrap;
@@ -251,8 +253,8 @@
 .time-slot-cell {
   min-height: 54px;
   padding: 3px;
-  border-bottom: 1px solid oklch(1 0 0 / 4%);
-  border-right: 1px solid oklch(1 0 0 / 4%);
+  border-bottom: 1px solid oklch(1 0 0 / 7%);
+  border-right: 1px solid oklch(1 0 0 / 7%);
   cursor: pointer;
   transition: background 0.15s ease;
   position: relative;
@@ -263,11 +265,11 @@
 }
 
 .time-slot-cell:hover {
-  background: oklch(0.65 0.18 280 / 4%);
+  background: oklch(0.65 0.22 15 / 4%);
 }
 
 .time-slot-cell.today {
-  background: oklch(0.65 0.18 280 / 3%);
+  background: oklch(0.65 0.22 15 / 8%);
 }
 
 
@@ -284,27 +286,90 @@
   opacity: 0.4;
 }
 
-/* ─── Task Block ─── */
-.task-block {
+/* ─── Task Block (absolutely positioned for multi-slot spanning) ─── */
+.task-block-abs {
   padding: 5px 7px;
   border-radius: 6px;
   border-left: 3px solid #8b5cf6;
-  margin-bottom: 2px;
   transition: transform 0.1s, box-shadow 0.1s;
   cursor: grab;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-.task-block:hover {
+.task-block-abs:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px oklch(0 0 0 / 20%);
+  z-index: 10 !important;
 }
 
-.task-block.done {
+.task-block-abs.done {
   opacity: 0.5;
 }
 
-.task-block.done .task-block-title {
+.task-block-abs.done .task-block-title {
   text-decoration: line-through;
+}
+
+/* Quick-complete check button — neon-rose glassmorphic */
+.task-block-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(244, 63, 94, 0.4);
+  background: rgba(15, 14, 42, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(251, 113, 133, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 0 0 0 transparent;
+}
+
+.task-block-abs:hover .task-block-check {
+  opacity: 1;
+}
+
+.task-block-check:hover {
+  transform: scale(1.12);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.5), rgba(251, 146, 60, 0.5));
+  border-color: #fb7185;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.4), 0 0 4px rgba(244, 63, 94, 0.2);
+}
+
+/* Done state — vibrant gradient with persistent glow */
+.task-block-check.is-done {
+  opacity: 1;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  border-color: #fb7185;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.task-block-check.is-done:hover {
+  background: linear-gradient(135deg, #e11d48, #be123c);
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.task-block-abs.done .task-block-check {
+  opacity: 1;
+}
+
+/* Always show checkmark on active tasks */
+.task-block-abs.in_progress .task-block-check,
+.task-block-abs.pending .task-block-check {
+  opacity: 1;
 }
 
 .task-block-title {
@@ -356,9 +421,178 @@
   background: #f43f5e;
 }
 
+/* ─── Sidebar Multi-Color Animated Border ─── */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes borderSpin {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.sidebar-nav-item {
+  position: relative;
+  border-radius: 12px;
+}
+
+/* Multi-color frame border via ::before */
+.sidebar-nav-item.active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 1.5px;
+  background: conic-gradient(from var(--angle),
+      #f43f5e,
+      #fb923c,
+      #facc15,
+      #34d399,
+      #22d3ee,
+      #6366f1,
+      #8b5cf6,
+      #f472b6,
+      #f43f5e);
+  animation: borderSpin 3s linear infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Diffused outer glow via ::after */
+.sidebar-nav-item.active::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 16px;
+  background: conic-gradient(from var(--angle),
+      #f43f5e,
+      #fb923c,
+      #facc15,
+      #34d399,
+      #22d3ee,
+      #6366f1,
+      #8b5cf6,
+      #f472b6,
+      #f43f5e);
+  animation: borderSpin 3s linear infinite;
+  filter: blur(14px);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Dark inner fill for active */
+.sidebar-nav-item.active {
+  background: oklch(0.11 0.012 280);
+}
+
+/* Hover glow on inactive items */
+.sidebar-nav-item:not(.active):hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 1.5px;
+  background: conic-gradient(from var(--angle),
+      #f43f5e,
+      #fb923c,
+      #facc15,
+      #34d399,
+      #22d3ee,
+      #6366f1,
+      #8b5cf6,
+      #f472b6,
+      #f43f5e);
+  animation: borderSpin 4s linear infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  opacity: 0.4;
+  z-index: 0;
+}
+
+/* ─── Futuristic Button ─── */
+.futuristic-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Sweep light effect (left-to-right on hover) */
+.futuristic-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+/* Hover: glow + lift */
+.futuristic-btn:hover {
+  border-color: #00f0ff;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 20px rgba(0, 240, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Sweep completes on hover */
+.futuristic-btn:hover::before {
+  left: 100%;
+}
+
+/* Ghost variant for Cancel buttons */
+.futuristic-btn.futuristic-btn-ghost {
+  background: transparent;
+  border-color: rgba(161, 161, 170, 0.25);
+  color: #a1a1aa;
+}
+
+.futuristic-btn.futuristic-btn-ghost::before {
+  background: linear-gradient(90deg, transparent, rgba(161, 161, 170, 0.12), transparent);
+}
+
+.futuristic-btn.futuristic-btn-ghost:hover {
+  border-color: rgba(161, 161, 170, 0.5);
+  color: #d4d4d8;
+  box-shadow: 0 0 12px rgba(161, 161, 170, 0.1);
+}
+
+/* Disabled state */
+.futuristic-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ─── Subject Colors ─── */
 .subject-physics {
-  --subject-color: #22d3ee;
+  --subject-color: #facc15;
 }
 
 .subject-chemistry {
@@ -366,7 +600,7 @@
 }
 
 .subject-maths {
-  --subject-color: #fb923c;
+  --subject-color: #ef4444;
 }
 
 .subject-biology {
@@ -383,4 +617,7 @@
     background: white;
     color: black;
   }
+
 }
+
+/* Force Rebuild */

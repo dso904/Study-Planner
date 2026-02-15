@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCheck, X, CalendarClock, Trash2 } from 'lucide-react';
 
 const subjectColors = {
-    physics: '#22d3ee', chemistry: '#f472b6', maths: '#fb923c', biology: '#34d399',
+    physics: '#facc15', chemistry: '#f472b6', maths: '#ef4444', biology: '#34d399',
 };
 
 export default function BacklogsPage() {
@@ -109,7 +109,7 @@ export default function BacklogsPage() {
                         boxShadow: '0 0 20px rgba(139,92,246,0.08)',
                     }}
                 >
-                    <span className="text-[10px] mono font-bold text-violet-300">{selected.size} SELECTED</span>
+                    <span className="text-[10px] mono font-bold text-rose-300">{selected.size} SELECTED</span>
                     <div className="flex-1" />
                     <ActionBtn icon={CheckCheck} label="DONE" color="#34d399" onClick={() => bulkAction('done')} />
                     <ActionBtn icon={CalendarClock} label="TODAY" color="#22d3ee" onClick={() => bulkAction('today')} />

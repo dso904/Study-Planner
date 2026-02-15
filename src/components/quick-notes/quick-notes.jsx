@@ -39,8 +39,8 @@ function NoteItem({ note, onToggle, onDelete, onEdit }) {
             <button
                 onClick={() => onToggle(note.id)}
                 className={`mt-0.5 w-[18px] h-[18px] rounded-[5px] border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 ${note.done
-                    ? 'bg-violet-500/80 border-violet-500/80'
-                    : 'border-zinc-600 hover:border-violet-400'
+                    ? 'bg-rose-500/80 border-rose-500/80'
+                    : 'border-zinc-600 hover:border-rose-400'
                     }`}
             >
                 {note.done && <Check size={11} strokeWidth={3} className="text-white" />}
@@ -54,7 +54,7 @@ function NoteItem({ note, onToggle, onDelete, onEdit }) {
                     onChange={(e) => setText(e.target.value)}
                     onBlur={save}
                     onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { setText(note.text); setEditing(false); } }}
-                    className="flex-1 bg-transparent text-sm text-zinc-200 outline-none border-b border-violet-500/40 pb-0.5"
+                    className="flex-1 bg-transparent text-sm text-zinc-200 outline-none border-b border-rose-500/40 pb-0.5"
                 />
             ) : (
                 <span
@@ -156,12 +156,12 @@ export default function QuickNotes() {
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
                                     placeholder="Add a note..."
-                                    className="flex-1 bg-white/[0.04] text-sm text-zinc-200 placeholder-zinc-600 px-3 py-2 rounded-lg border border-white/8 outline-none focus:border-violet-500/40 focus:bg-white/[0.06] transition-all"
+                                    className="flex-1 bg-white/[0.04] text-sm text-zinc-200 placeholder-zinc-600 px-3 py-2 rounded-lg border border-white/8 outline-none focus:border-rose-500/40 focus:bg-white/[0.06] transition-all"
                                 />
                                 <button
                                     onClick={handleAdd}
                                     disabled={!input.trim()}
-                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-violet-500/15 text-violet-400 hover:bg-violet-500/25 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <Plus size={16} />
                                 </button>

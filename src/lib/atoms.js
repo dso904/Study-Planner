@@ -5,6 +5,8 @@ import { atomWithStorage } from 'jotai/utils';
 import { useRef, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
+dayjs.extend(isoWeek);
 
 // ─── Supabase Helpers ────────────────────────────────────────
 // Local-First (Optimistic UI): all mutations update local state FIRST, then push to Supabase.
@@ -61,9 +63,9 @@ async function dbFetchAll(table, orderBy = 'created_at') {
 
 // ─── Hardcoded Subjects ──────────────────────────────────────
 export const SUBJECTS = [
-    { id: 'physics', name: 'Physics', emoji: '⚛️', icon: '🔬', color: '#22d3ee' },
+    { id: 'physics', name: 'Physics', emoji: '⚛️', icon: '🔬', color: '#facc15' },
     { id: 'chemistry', name: 'Chemistry', emoji: '🧪', icon: '⚗️', color: '#f472b6' },
-    { id: 'maths', name: 'Maths', emoji: '📐', icon: '🧮', color: '#fb923c' },
+    { id: 'maths', name: 'Maths', emoji: '📐', icon: '🧮', color: '#ef4444' },
     { id: 'biology', name: 'Biology', emoji: '🧬', icon: '🌿', color: '#34d399' },
     { id: 'english', name: 'English', emoji: '📝', icon: '📖', color: '#a78bfa' },
 ];
@@ -77,7 +79,7 @@ export const notesAtom = atomWithStorage('dp-notes', []);
 export const sidebarCollapsedAtom = atomWithStorage('dp-sidebar-collapsed', false);
 export const notesPanelOpenAtom = atom(false);
 export const currentWeekStartAtom = atom(
-    dayjs().startOf('week').add(1, 'day').format('YYYY-MM-DD')
+    dayjs().startOf('isoWeek').format('YYYY-MM-DD')
 );
 
 // ─── Schedule Config ─────────────────────────────────────────
@@ -106,7 +108,7 @@ export function useTaskActions() {
         setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...updated } : t));
         // Read latest from ref to push complete record to cloud
         if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
-        
+
         debounceRef.current[id] = setTimeout(() => {
             const current = tasksRef.current.find((t) => t.id === id);
             if (current) dbUpsert('tasks', current);
@@ -160,7 +162,7 @@ export function useChapterActions() {
         const updated = { ...updates, updated_at: new Date().toISOString() };
         setChapters((prev) => prev.map((c) => c.id === id ? { ...c, ...updated } : c));
         if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
-        
+
         debounceRef.current[id] = setTimeout(() => {
             const c = chaptersRef.current.find((x) => x.id === id);
             if (c) dbUpsert('chapters', c);
@@ -248,7 +250,7 @@ export function useWeekNavigation() {
     };
 
     const goToThisWeek = () => {
-        setCurrentWeekStart(dayjs().startOf('week').add(1, 'day').format('YYYY-MM-DD'));
+        setCurrentWeekStart(dayjs().startOf('isoWeek').format('YYYY-MM-DD'));
     };
 
     return { currentWeekStart, setCurrentWeekStart, goToPreviousWeek, goToNextWeek, goToThisWeek };
