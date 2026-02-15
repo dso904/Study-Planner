@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAtomValue } from 'jotai';
-import { subjectsAtom, useTaskActions } from '@/lib/atoms';
+import { SUBJECTS, useTaskActions } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -49,7 +48,7 @@ const initialForm = {
 };
 
 export default function TaskModal({ open, onClose, task, defaultDate, defaultTime }) {
-    const subjects = useAtomValue(subjectsAtom) || [];
+    const subjects = SUBJECTS;
     const { addTask, updateTask, deleteTask } = useTaskActions();
     const [form, setForm] = useState(initialForm);
     const isEditing = !!task;

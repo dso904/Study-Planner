@@ -44,9 +44,16 @@ async function dbFetchAll(table, orderBy = 'created_at') {
     }
 }
 
+// ─── Hardcoded Subjects ──────────────────────────────────────
+export const SUBJECTS = [
+    { id: 'physics', name: 'Physics', emoji: '⚛️', icon: '🔬', color: '#22d3ee' },
+    { id: 'chemistry', name: 'Chemistry', emoji: '🧪', icon: '⚗️', color: '#f472b6' },
+    { id: 'maths', name: 'Maths', emoji: '📐', icon: '🧮', color: '#fb923c' },
+    { id: 'biology', name: 'Biology', emoji: '🧬', icon: '🌿', color: '#34d399' },
+];
+
 // ─── Base Atoms (persisted to localStorage) ──────────────────
 export const tasksAtom = atomWithStorage('dp-tasks', []);
-export const subjectsAtom = atomWithStorage('dp-subjects', []);
 export const chaptersAtom = atomWithStorage('dp-chapters', []);
 
 // ─── UI Atoms ────────────────────────────────────────────────
@@ -120,30 +127,6 @@ export function useTaskActions() {
     return { tasks, addTask, updateTask, deleteTask, moveTask, getTasksForDate, getTasksForWeek, getBacklogs };
 }
 
-// ─── Subject Actions Hook ────────────────────────────────────
-export function useSubjectActions() {
-    const [subjects, setSubjects] = useAtom(subjectsAtom);
-
-    const addSubject = (subject) => {
-        setSubjects((prev) => [...prev, subject]);
-        debounce(`subj-add-${subject.id}`, () => dbUpsert('subjects', subject));
-    };
-
-    const updateSubject = (id, updates) => {
-        setSubjects((prev) => prev.map((s) => s.id === id ? { ...s, ...updates } : s));
-        debounce(`subj-upd-${id}`, () => {
-            const s = subjects.find((x) => x.id === id);
-            if (s) dbUpsert('subjects', { ...s, ...updates });
-        });
-    };
-
-    const deleteSubject = (id) => {
-        setSubjects((prev) => prev.filter((s) => s.id !== id));
-        dbDelete('subjects', id);
-    };
-
-    return { subjects, addSubject, updateSubject, deleteSubject };
-}
 
 // ─── Chapter Actions Hook ────────────────────────────────────
 export function useChapterActions() {
@@ -194,16 +177,14 @@ export function useWeekNavigation() {
 }
 
 // ─── Hydrate from Supabase (non-blocking) ────────────────────
-export async function hydrateFromSupabase(setTasks, setSubjects, setChapters) {
+export async function hydrateFromSupabase(setTasks, setChapters) {
     if (!supabase) return;
     try {
-        const [tasksData, subjectsData, chaptersData] = await Promise.all([
+        const [tasksData, chaptersData] = await Promise.all([
             dbFetchAll('tasks'),
-            dbFetchAll('subjects'),
             dbFetchAll('chapters'),
         ]);
         if (tasksData && tasksData.length > 0) setTasks(tasksData);
-        if (subjectsData && subjectsData.length > 0) setSubjects(subjectsData);
         if (chaptersData && chaptersData.length > 0) setChapters(chaptersData);
     } catch (e) {
         console.warn('[DB] hydration failed, using localStorage fallback:', e.message);

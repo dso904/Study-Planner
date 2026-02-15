@@ -2,17 +2,21 @@
 
 import { useState, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, subjectsAtom, useTaskActions } from '@/lib/atoms';
+import { tasksAtom, SUBJECTS, useTaskActions } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCheck, X, CalendarClock, Trash2 } from 'lucide-react';
+
+const subjectColors = {
+    physics: '#22d3ee', chemistry: '#f472b6', maths: '#fb923c', biology: '#34d399',
+};
 
 export default function BacklogsPage() {
     const tasks = useAtomValue(tasksAtom) || [];
-    const subjects = useAtomValue(subjectsAtom) || [];
+    const subjects = SUBJECTS;
     const { updateTask, deleteTask } = useTaskActions();
     const [selected, setSelected] = useState(new Set());
 
@@ -36,8 +40,7 @@ export default function BacklogsPage() {
     };
 
     const bulkAction = (action) => {
-        const ids = [...selected];
-        ids.forEach((id) => {
+        [...selected].forEach((id) => {
             switch (action) {
                 case 'done': updateTask(id, { status: 'done' }); break;
                 case 'dismiss': updateTask(id, { status: 'skipped' }); break;
@@ -51,79 +54,156 @@ export default function BacklogsPage() {
 
     const getSubjectColor = (subjectId) => {
         const s = subjects.find((x) => x.id === subjectId);
-        return s?.color || '#8b5cf6';
+        return subjectColors[s?.name?.toLowerCase()] || s?.color || '#8b5cf6';
     };
 
-    return (
-        <div className="max-w-2xl">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                    <AlertTriangle size={18} className="text-orange-400" />
-                    <h2 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">Backlogs</h2>
-                    <Badge variant="outline" className="mono text-[9px] border-white/10 text-zinc-500">{backlogs.length}</Badge>
-                </div>
-            </div>
+    /* ─── Action Button ─── */
+    const ActionBtn = ({ icon: Icon, label, color, onClick }) => (
+        <button
+            onClick={onClick}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold mono tracking-wider transition-all duration-200 hover:scale-105"
+            style={{
+                color,
+                background: `${color}12`,
+                border: `1px solid ${color}25`,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${color}60`; e.currentTarget.style.boxShadow = `0 0 12px ${color}20`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${color}25`; e.currentTarget.style.boxShadow = 'none'; }}
+        >
+            {Icon && <Icon size={12} />}
+            {label}
+        </button>
+    );
 
-            {/* Bulk Actions */}
-            {selected.size > 0 && (
-                <div className="flex items-center gap-2 mb-3 p-2 rounded-md bg-violet-500/6 border border-violet-500/15">
-                    <span className="text-[10px] mono text-violet-300 font-semibold">{selected.size} selected</span>
-                    <div className="flex-1" />
-                    <Button size="sm" className="h-6 text-[10px] bg-green-500/15 text-green-400 hover:bg-green-500/25" onClick={() => bulkAction('done')}>
-                        <CheckCheck size={11} className="mr-1" /> Done
-                    </Button>
-                    <Button size="sm" className="h-6 text-[10px] bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25" onClick={() => bulkAction('today')}>
-                        <CalendarClock size={11} className="mr-1" /> Today
-                    </Button>
-                    <Button size="sm" className="h-6 text-[10px] bg-orange-500/15 text-orange-400 hover:bg-orange-500/25" onClick={() => bulkAction('tomorrow')}>
-                        Tomorrow
-                    </Button>
-                    <Button size="sm" className="h-6 text-[10px] bg-zinc-500/15 text-zinc-400 hover:bg-zinc-500/25" onClick={() => bulkAction('dismiss')}>
-                        <X size={11} className="mr-1" /> Skip
-                    </Button>
-                    <Button size="sm" variant="ghost" className="h-6 text-[10px] text-red-400 hover:text-red-300" onClick={() => bulkAction('delete')}>
-                        <Trash2 size={11} />
-                    </Button>
+    return (
+        <div className="max-w-3xl">
+            {/* Header */}
+            <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between mb-4"
+            >
+                <div className="flex items-center gap-3">
+                    <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                        style={{ background: '#fb923c12', border: '1px solid #fb923c20', boxShadow: '0 0 16px #fb923c10' }}
+                    >
+                        <AlertTriangle size={20} className="text-orange-400" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-extrabold text-zinc-100 tracking-tight">BACKLOGS</h1>
+                        <p className="text-[10px] mono text-zinc-600">{backlogs.length} overdue task{backlogs.length !== 1 ? 's' : ''}</p>
+                    </div>
                 </div>
+            </motion.div>
+
+            {/* Bulk Actions Bar */}
+            {selected.size > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 mb-3 p-3 rounded-xl"
+                    style={{
+                        background: 'linear-gradient(145deg, rgba(139,92,246,0.06), transparent)',
+                        border: '1px solid rgba(139,92,246,0.2)',
+                        boxShadow: '0 0 20px rgba(139,92,246,0.08)',
+                    }}
+                >
+                    <span className="text-[10px] mono font-bold text-violet-300">{selected.size} SELECTED</span>
+                    <div className="flex-1" />
+                    <ActionBtn icon={CheckCheck} label="DONE" color="#34d399" onClick={() => bulkAction('done')} />
+                    <ActionBtn icon={CalendarClock} label="TODAY" color="#22d3ee" onClick={() => bulkAction('today')} />
+                    <ActionBtn label="TOMORROW" color="#fb923c" onClick={() => bulkAction('tomorrow')} />
+                    <ActionBtn icon={X} label="SKIP" color="#64748b" onClick={() => bulkAction('dismiss')} />
+                    <ActionBtn icon={Trash2} color="#f43f5e" onClick={() => bulkAction('delete')} />
+                </motion.div>
             )}
 
             {backlogs.length === 0 ? (
-                <Card className="p-8 text-center bg-card border-white/6">
-                    <CheckCheck size={32} className="text-green-400 mx-auto mb-2" />
-                    <p className="text-sm font-semibold text-zinc-200">All caught up!</p>
-                    <p className="text-xs text-zinc-600 mt-1">No overdue tasks.</p>
-                </Card>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="rounded-xl p-12 text-center"
+                    style={{
+                        background: 'linear-gradient(145deg, rgba(52,211,153,0.06), transparent)',
+                        border: '1px solid rgba(52,211,153,0.18)',
+                    }}
+                >
+                    <CheckCheck size={36} className="text-green-400 mx-auto mb-3" style={{ filter: 'drop-shadow(0 0 8px rgba(52,211,153,0.4))' }} />
+                    <p className="text-lg font-extrabold text-zinc-100">All caught up!</p>
+                    <p className="text-xs text-zinc-600 mt-1 mono">No overdue tasks to worry about.</p>
+                </motion.div>
             ) : (
-                <div className="space-y-1.5">
-                    <button onClick={toggleAll} className="text-[10px] mono text-zinc-600 hover:text-zinc-400 transition-colors mb-1">
-                        {selected.size === backlogs.length ? 'Deselect all' : 'Select all'}
+                <div className="space-y-2">
+                    <button onClick={toggleAll} className="text-[9px] mono font-bold text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-wider">
+                        {selected.size === backlogs.length ? '✕ Deselect all' : '☐ Select all'}
                     </button>
 
-                    {backlogs.map((task) => {
+                    {backlogs.map((task, idx) => {
                         const color = getSubjectColor(task.subject_id);
                         const daysOverdue = dayjs().diff(dayjs(task.date), 'day');
+                        const isSelected = selected.has(task.id);
+                        const urgency = daysOverdue > 7 ? '#f43f5e' : daysOverdue > 3 ? '#fb923c' : '#facc15';
+
                         return (
-                            <Card key={task.id} className={`bg-card border-white/6 p-2.5 px-3 flex items-center gap-2.5 transition-colors ${selected.has(task.id) ? 'bg-violet-500/8 border-violet-500/20' : ''}`}>
+                            <motion.div
+                                key={task.id}
+                                initial={{ opacity: 0, x: -8 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.25, delay: idx * 0.03 }}
+                                className="group flex items-center gap-3 p-3 px-4 rounded-xl transition-all duration-200 hover:scale-[1.005] cursor-pointer"
+                                style={{
+                                    background: isSelected
+                                        ? `linear-gradient(145deg, ${color}12, ${color}06)`
+                                        : `linear-gradient(145deg, ${color}06, transparent)`,
+                                    border: `1px solid ${isSelected ? `${color}40` : `${color}15`}`,
+                                    boxShadow: isSelected ? `0 0 16px ${color}12` : 'none',
+                                }}
+                                onClick={() => toggleSelect(task.id)}
+                                onMouseEnter={(e) => {
+                                    if (!isSelected) {
+                                        e.currentTarget.style.border = `1px solid ${color}35`;
+                                        e.currentTarget.style.boxShadow = `0 0 16px ${color}08`;
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isSelected) {
+                                        e.currentTarget.style.border = `1px solid ${color}15`;
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }
+                                }}
+                            >
                                 <Checkbox
-                                    checked={selected.has(task.id)}
+                                    checked={isSelected}
                                     onCheckedChange={() => toggleSelect(task.id)}
                                     className="border-white/20"
+                                    onClick={(e) => e.stopPropagation()}
                                 />
-                                <div className="w-1.5 h-5 rounded-sm" style={{ background: color, boxShadow: `0 0 6px ${color}40` }} />
+
+                                <div className="w-1 h-6 rounded-full shrink-0" style={{ background: color, boxShadow: `0 0 6px ${color}40` }} />
+
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-zinc-200 truncate">{task.title}</p>
+                                    <p className="text-[13px] font-semibold text-zinc-200 truncate">{task.title}</p>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <span className="text-[9px] text-zinc-600 mono">{dayjs(task.date).format('MMM D')}</span>
-                                        {task.subject_name && <span className="text-[9px] mono" style={{ color }}>{task.subject_name}</span>}
-                                        <Badge variant="outline" className="mono text-[8px] border-white/8 text-zinc-600 px-1 py-0">
-                                            {task.category}
+                                        {task.subject_name && <span className="text-[9px] mono font-semibold" style={{ color }}>{task.subject_name}</span>}
+                                        <Badge
+                                            variant="outline"
+                                            className="mono text-[8px] px-1.5 py-0 border-white/8 text-zinc-600"
+                                        >
+                                            {task.category?.replace('_', ' ')}
                                         </Badge>
                                     </div>
                                 </div>
-                                <Badge variant="outline" className="mono text-[9px] border-red-500/20 text-red-400 whitespace-nowrap">
-                                    {daysOverdue}d ago
+
+                                <Badge
+                                    variant="outline"
+                                    className="mono text-[9px] px-2 py-0.5 whitespace-nowrap font-bold"
+                                    style={{ color: urgency, borderColor: `${urgency}30` }}
+                                >
+                                    {daysOverdue}d overdue
                                 </Badge>
-                            </Card>
+                            </motion.div>
                         );
                     })}
                 </div>

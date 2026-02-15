@@ -2,7 +2,7 @@
 
 import { useState, useRef, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, subjectsAtom, useWeekNavigation } from '@/lib/atoms';
+import { tasksAtom, SUBJECTS, useWeekNavigation } from '@/lib/atoms';
 import { getWeekDays, getTimeSlots, formatTime, dayjs } from '@/lib/dates';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -28,7 +28,7 @@ const priorityDot = {
 
 export default function PrintModal({ open, onClose }) {
     const tasks = useAtomValue(tasksAtom) || [];
-    const subjects = useAtomValue(subjectsAtom) || [];
+    const subjects = SUBJECTS;
     const { currentWeekStart } = useWeekNavigation();
     const printRef = useRef(null);
 
