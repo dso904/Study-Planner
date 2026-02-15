@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAtomValue } from 'jotai';
 import { chaptersAtom, useChapterActions, SUBJECTS } from '@/lib/atoms';
 import { Badge } from '@/components/ui/badge';
@@ -9,15 +9,101 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Check, ChevronDown } from 'lucide-react';
 
 const chapterStatuses = [
-    { value: 'not_started', label: 'Not Started', color: '#64748b' },
-    { value: 'in_progress', label: 'In Progress', color: '#22d3ee' },
-    { value: 'revision_1', label: 'Revision 1', color: '#fb923c' },
-    { value: 'revision_2', label: 'Revision 2', color: '#a78bfa' },
-    { value: 'completed', label: 'Completed', color: '#34d399' },
+    { value: 'not_started', label: 'Not Started', emoji: '⏸️', color: '#64748b', bg: '#64748b15' },
+    { value: 'in_progress', label: 'In Progress', emoji: '📖', color: '#22d3ee', bg: '#22d3ee15' },
+    { value: 'revision_1', label: 'Revision 1', emoji: '🔁', color: '#fb923c', bg: '#fb923c15' },
+    { value: 'revision_2', label: 'Revision 2', emoji: '🔄', color: '#a78bfa', bg: '#a78bfa15' },
+    { value: 'completed', label: 'Completed', emoji: '✅', color: '#34d399', bg: '#34d39915' },
 ];
+
+/* ─── Chapter Status Selector ─── */
+function StatusSelector({ value, onChange, parentColor }) {
+    const [open, setOpen] = useState(false);
+    const containerRef = useRef(null);
+    const current = chapterStatuses.find((s) => s.value === value) || chapterStatuses[0];
+
+    // Close on outside click
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    return (
+        <div ref={containerRef} className="relative" style={{ zIndex: open ? 50 : 'auto' }}>
+            <button
+                onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold mono tracking-wider transition-all duration-200 hover:scale-105"
+                style={{
+                    color: current.color,
+                    background: current.bg,
+                    border: `1px solid ${current.color}25`,
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = `${current.color}60`;
+                    e.currentTarget.style.boxShadow = `0 0 10px ${current.color}20`;
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = `${current.color}25`;
+                    e.currentTarget.style.boxShadow = 'none';
+                }}
+            >
+                <span className="text-xs">{current.emoji}</span>
+                <span>{current.label}</span>
+                <ChevronDown size={10} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 top-full mt-1 min-w-[180px] p-1.5 rounded-xl"
+                        style={{
+                            zIndex: 9999,
+                            background: 'rgba(15,14,42,0.98)',
+                            border: `1px solid ${parentColor}30`,
+                            boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${parentColor}10`,
+                            backdropFilter: 'blur(12px)',
+                        }}
+                    >
+                        <p className="px-2 py-1 text-[8px] mono font-bold uppercase tracking-widest text-zinc-600 mb-1">
+                            CHAPTER STATUS
+                        </p>
+                        {chapterStatuses.map((s) => {
+                            const isActive = s.value === value;
+                            return (
+                                <button
+                                    key={s.value}
+                                    onClick={(e) => { e.stopPropagation(); onChange(s.value); setOpen(false); }}
+                                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all duration-150"
+                                    style={{
+                                        background: isActive ? s.bg : 'transparent',
+                                        border: `1px solid ${isActive ? `${s.color}30` : 'transparent'}`,
+                                    }}
+                                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = `${s.color}08`; }}
+                                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = isActive ? s.bg : 'transparent'; }}
+                                >
+                                    <span className="text-sm">{s.emoji}</span>
+                                    <span className="flex-1 text-[11px] font-semibold" style={{ color: s.color }}>{s.label}</span>
+                                    {isActive && <Check size={12} style={{ color: s.color }} />}
+                                </button>
+                            );
+                        })}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
 
 /* ─── Subject Quadrant Card ─── */
 function SubjectQuadrant({ subject }) {
@@ -50,7 +136,7 @@ function SubjectQuadrant({ subject }) {
 
     return (
         <div
-            className="relative flex flex-col rounded-2xl overflow-hidden transition-all duration-300 h-full"
+            className="relative flex flex-col rounded-2xl transition-all duration-300 h-full"
             style={{
                 background: `linear-gradient(145deg, ${subject.color}0a 0%, ${subject.color}04 50%, transparent 100%)`,
                 border: `1px solid ${subject.color}22`,
@@ -113,7 +199,7 @@ function SubjectQuadrant({ subject }) {
                 </div>
             </div>
 
-            {/* Chapters List */}
+            {/* Chapters List — scrolls independently */}
             <div className="flex-1 overflow-auto px-5 pb-2 custom-scrollbar">
                 {chapters.length === 0 ? (
                     <div className="flex items-center justify-center h-20">
@@ -122,7 +208,6 @@ function SubjectQuadrant({ subject }) {
                 ) : (
                     <div className="space-y-1.5">
                         {chapters.map((ch, idx) => {
-                            const statusInfo = chapterStatuses.find((s) => s.value === ch.status) || chapterStatuses[0];
                             const shadeOpacity = Math.max(0.06, 0.18 - idx * 0.02);
                             const borderOpacity = Math.max(0.08, 0.22 - idx * 0.025);
                             return (
@@ -142,16 +227,11 @@ function SubjectQuadrant({ subject }) {
                                         <span className="text-[12px] font-medium text-zinc-200 truncate">{ch.name}</span>
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0">
-                                        <select
+                                        <StatusSelector
                                             value={ch.status}
-                                            onChange={(e) => updateChapter(ch.id, { status: e.target.value })}
-                                            className="bg-transparent text-[9px] mono font-semibold border-none focus:outline-none cursor-pointer appearance-none"
-                                            style={{ color: statusInfo.color }}
-                                        >
-                                            {chapterStatuses.map((s) => (
-                                                <option key={s.value} value={s.value} style={{ background: '#0f0e2a' }}>{s.label}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(newStatus) => updateChapter(ch.id, { status: newStatus })}
+                                            parentColor={subject.color}
+                                        />
                                         <button
                                             onClick={() => deleteChapter(ch.id)}
                                             className="opacity-0 group-hover/ch:opacity-100 text-zinc-700 hover:text-red-400 transition-all p-0.5"
@@ -192,7 +272,13 @@ function SubjectQuadrant({ subject }) {
                     <div>
                         <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Chapter Name</Label>
                         <Input
-                            placeholder="e.g., Kinematics, Thermodynamics..."
+                            placeholder={
+                                subject.id === 'physics' ? 'e.g., Kinematics, Thermodynamics...' :
+                                    subject.id === 'chemistry' ? 'e.g., Organic Chemistry, Bonding...' :
+                                        subject.id === 'maths' ? 'e.g., Calculus, Algebra...' :
+                                            subject.id === 'biology' ? 'e.g., Genetics, Cell Biology...' :
+                                                'e.g., Chapter details...'
+                            }
                             value={newChapterName}
                             onChange={(e) => setNewChapterName(e.target.value)}
                             className="bg-white/5 border-white/10 mt-1.5"
@@ -220,7 +306,6 @@ function SubjectQuadrant({ subject }) {
 export default function SubjectsPage() {
     return (
         <div className="h-[calc(100vh-var(--topbar-h)-3.5rem)] flex flex-col">
-            {/* Grid: 2×2 quadrants */}
             <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
                 {SUBJECTS.map((subject, i) => (
                     <motion.div

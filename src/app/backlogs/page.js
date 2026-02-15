@@ -76,7 +76,7 @@ export default function BacklogsPage() {
     );
 
     return (
-        <div className="max-w-3xl">
+        <div>
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -8 }}

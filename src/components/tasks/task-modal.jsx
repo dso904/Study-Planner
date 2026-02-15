@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { SUBJECTS, useTaskActions } from '@/lib/atoms';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useAtomValue } from 'jotai';
+import { SUBJECTS, chaptersAtom, useTaskActions } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -11,35 +12,131 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ChevronDown, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const categories = [
-    { value: 'lecture', label: '📺 Lecture' },
-    { value: 'theory', label: '📖 Theory' },
-    { value: 'revision', label: '🔁 Revision' },
-    { value: 'practice', label: '✏️ Practice' },
-    { value: 'test', label: '📝 Test / Mock' },
-    { value: 'assignment', label: '📋 Assignment' },
-    { value: 'self_study', label: '🧠 Self-Study' },
-    { value: 'school', label: '🏫 School' },
-    { value: 'tuition', label: '🎓 Tuition' },
-    { value: 'other', label: '⚡ Other' },
+    { value: 'lecture', label: 'Lecture', emoji: '📺', color: '#8b5cf6' },
+    { value: 'theory', label: 'Theory', emoji: '📖', color: '#22d3ee' },
+    { value: 'revision', label: 'Revision', emoji: '🔁', color: '#fb923c' },
+    { value: 'practice', label: 'Practice', emoji: '✏️', color: '#34d399' },
+    { value: 'test', label: 'Test / Mock', emoji: '📝', color: '#f472b6' },
+    { value: 'assignment', label: 'Assignment', emoji: '📋', color: '#a78bfa' },
+    { value: 'self_study', label: 'Self-Study', emoji: '🧠', color: '#facc15' },
+    { value: 'school', label: 'School', emoji: '🏫', color: '#64748b' },
+    { value: 'tuition', label: 'Tuition', emoji: '🎓', color: '#f43f5e' },
+    { value: 'other', label: 'Other', emoji: '⚡', color: '#94a3b8' },
 ];
 
 const priorities = [
-    { value: 'critical', label: '🔴 Critical' },
-    { value: 'high', label: '🟠 High' },
-    { value: 'medium', label: '🟡 Medium' },
-    { value: 'low', label: '🟢 Low' },
+    { value: 'critical', label: 'Critical', emoji: '🔴', color: '#f43f5e' },
+    { value: 'high', label: 'High', emoji: '🟠', color: '#fb923c' },
+    { value: 'medium', label: 'Medium', emoji: '🟡', color: '#facc15' },
+    { value: 'low', label: 'Low', emoji: '🟢', color: '#34d399' },
 ];
 
 const statuses = [
-    { value: 'pending', label: '⏳ Pending' },
-    { value: 'in_progress', label: '🔄 In Progress' },
-    { value: 'done', label: '✅ Done' },
-    { value: 'skipped', label: '⏭️ Skipped' },
-    { value: 'missed', label: '🔴 Missed' },
+    { value: 'pending', label: 'Pending', emoji: '⏳', color: '#fb923c' },
+    { value: 'in_progress', label: 'In Progress', emoji: '🔄', color: '#22d3ee' },
+    { value: 'done', label: 'Done', emoji: '✅', color: '#34d399' },
+    { value: 'skipped', label: 'Skipped', emoji: '⏭️', color: '#64748b' },
+    { value: 'missed', label: 'Missed', emoji: '🔴', color: '#f43f5e' },
 ];
+
+/* ─── Reusable Modular Dropdown ─── */
+function ModularSelect({ value, onChange, options, placeholder, label, accentColor = '#8b5cf6' }) {
+    const [open, setOpen] = useState(false);
+    const containerRef = useRef(null);
+    const current = options.find((o) => o.value === value);
+
+    // Close on outside click
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    const displayColor = current?.color || '#64748b';
+
+    return (
+        <div ref={containerRef} className="relative">
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                className="w-full mt-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-200"
+                style={{
+                    background: current ? `${displayColor}08` : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${current ? `${displayColor}25` : 'rgba(255,255,255,0.1)'}`,
+                    color: current ? displayColor : '#71717a',
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = `${displayColor}50`;
+                    e.currentTarget.style.boxShadow = `0 0 12px ${displayColor}12`;
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = current ? `${displayColor}25` : 'rgba(255,255,255,0.1)';
+                    e.currentTarget.style.boxShadow = 'none';
+                }}
+            >
+                {current?.emoji && <span className="text-sm">{current.emoji}</span>}
+                <span className="flex-1 text-left font-medium truncate">
+                    {current ? current.label : placeholder}
+                </span>
+                <ChevronDown size={14} className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: '#64748b' }} />
+            </button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute left-0 right-0 top-full mt-1 p-1.5 rounded-xl max-h-[200px] overflow-auto custom-scrollbar"
+                        style={{
+                            zIndex: 9999,
+                            background: 'rgba(15,14,42,0.98)',
+                            border: `1px solid ${accentColor}30`,
+                            boxShadow: `0 12px 40px rgba(0,0,0,0.55), 0 0 20px ${accentColor}08`,
+                            backdropFilter: 'blur(16px)',
+                        }}
+                    >
+                        {label && (
+                            <p className="px-2 py-1 text-[8px] mono font-bold uppercase tracking-widest text-zinc-600 mb-0.5">
+                                {label}
+                            </p>
+                        )}
+                        {options.map((opt) => {
+                            const isActive = opt.value === value;
+                            const c = opt.color || accentColor;
+                            return (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => { onChange(opt.value); setOpen(false); }}
+                                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all duration-150"
+                                    style={{
+                                        background: isActive ? `${c}12` : 'transparent',
+                                        border: `1px solid ${isActive ? `${c}25` : 'transparent'}`,
+                                    }}
+                                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = `${c}08`; }}
+                                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = isActive ? `${c}12` : 'transparent'; }}
+                                >
+                                    {opt.emoji && <span className="text-sm shrink-0">{opt.emoji}</span>}
+                                    <span className="flex-1 text-[11px] font-semibold" style={{ color: c }}>{opt.label}</span>
+                                    {isActive && <Check size={12} style={{ color: c }} />}
+                                </button>
+                            );
+                        })}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
 
 const initialForm = {
     title: '', subject_id: '', subject_name: '', chapter_id: '',
@@ -49,9 +146,27 @@ const initialForm = {
 
 export default function TaskModal({ open, onClose, task, defaultDate, defaultTime }) {
     const subjects = SUBJECTS;
+    const allChapters = useAtomValue(chaptersAtom) || [];
     const { addTask, updateTask, deleteTask } = useTaskActions();
     const [form, setForm] = useState(initialForm);
     const isEditing = !!task;
+
+    const subjectOptions = useMemo(() => [
+        { value: '', label: 'No subject', emoji: '📂', color: '#64748b' },
+        ...subjects.map((s) => ({ value: s.id, label: s.name, emoji: s.emoji, color: s.color })),
+    ], [subjects]);
+
+    const chapterOptions = useMemo(() => {
+        if (!form.subject_id) return [];
+        const filtered = allChapters.filter((c) => c.subject_id === form.subject_id);
+        return [
+            { value: '', label: 'No chapter', emoji: '📄', color: '#64748b' },
+            ...filtered.map((c) => {
+                const subj = subjects.find((s) => s.id === form.subject_id);
+                return { value: c.id, label: c.name, emoji: '📑', color: subj?.color || '#8b5cf6' };
+            }),
+        ];
+    }, [allChapters, form.subject_id, subjects]);
 
     useEffect(() => {
         if (task) {
@@ -74,7 +189,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
     const updateField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
     const handleSubjectChange = (id) => {
         const s = subjects.find((x) => x.id === id);
-        setForm((p) => ({ ...p, subject_id: id, subject_name: s?.name || '' }));
+        setForm((p) => ({ ...p, subject_id: id, subject_name: s?.name || '', chapter_id: '' }));
     };
 
     const handleSave = () => {
@@ -92,23 +207,24 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
 
     const handleDelete = () => { if (task) { deleteTask(task.id); onClose(); } };
 
-    const statusColor = form.status === 'done' ? 'text-green-400' : form.status === 'missed' ? 'text-red-400' : form.status === 'in_progress' ? 'text-cyan-400' : 'text-zinc-400';
+    const currentStatus = statuses.find((s) => s.value === form.status);
+    const statusColor = currentStatus?.color || '#64748b';
 
     return (
         <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-            <DialogContent className="sm:max-w-[600px] bg-zinc-900 border-white/10">
+            <DialogContent className="sm:max-w-[600px] bg-zinc-900 border-white/10 overflow-visible">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <span className="neon-text font-extrabold text-lg">{isEditing ? 'EDIT TASK' : 'NEW TASK'}</span>
                         {isEditing && (
-                            <Badge variant="outline" className={`mono text-[10px] tracking-wider border-white/10 ${statusColor}`}>
+                            <Badge variant="outline" className="mono text-[10px] tracking-wider border-white/10" style={{ color: statusColor }}>
                                 {form.status.toUpperCase().replace('_', ' ')}
                             </Badge>
                         )}
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4">
+                <div className="space-y-4 overflow-visible">
                     {/* Title */}
                     <div>
                         <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Task</Label>
@@ -137,52 +253,70 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         </div>
                     </div>
 
-                    {/* Subject + Category */}
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Subject + Chapter */}
+                    <div className={`grid gap-3 ${form.subject_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         <div>
                             <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Subject</Label>
-                            <select
+                            <ModularSelect
                                 value={form.subject_id}
-                                onChange={(e) => handleSubjectChange(e.target.value)}
-                                className="w-full mt-1 bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-zinc-200 focus:border-violet-500/40 focus:outline-none"
-                            >
-                                <option value="">Select subject</option>
-                                {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                            </select>
+                                onChange={handleSubjectChange}
+                                options={subjectOptions}
+                                placeholder="Select subject"
+                                label="SUBJECTS"
+                                accentColor="#8b5cf6"
+                            />
                         </div>
-                        <div>
-                            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Category</Label>
-                            <select
-                                value={form.category}
-                                onChange={(e) => updateField('category', e.target.value)}
-                                className="w-full mt-1 bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-zinc-200 focus:border-violet-500/40 focus:outline-none"
-                            >
-                                {categories.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                            </select>
-                        </div>
+                        {form.subject_id && chapterOptions.length > 1 && (
+                            <div>
+                                <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Chapter</Label>
+                                <ModularSelect
+                                    value={form.chapter_id}
+                                    onChange={(v) => updateField('chapter_id', v)}
+                                    options={chapterOptions}
+                                    placeholder="Select chapter"
+                                    label="CHAPTERS"
+                                    accentColor={subjects.find((s) => s.id === form.subject_id)?.color || '#8b5cf6'}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                        <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Category</Label>
+                        <ModularSelect
+                            value={form.category}
+                            onChange={(v) => updateField('category', v)}
+                            options={categories}
+                            placeholder="Select category"
+                            label="CATEGORY"
+                            accentColor="#f472b6"
+                        />
                     </div>
 
                     {/* Priority + Status */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Priority</Label>
-                            <select
+                            <ModularSelect
                                 value={form.priority}
-                                onChange={(e) => updateField('priority', e.target.value)}
-                                className="w-full mt-1 bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-zinc-200 focus:border-violet-500/40 focus:outline-none"
-                            >
-                                {priorities.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-                            </select>
+                                onChange={(v) => updateField('priority', v)}
+                                options={priorities}
+                                placeholder="Select priority"
+                                label="PRIORITY"
+                                accentColor="#fb923c"
+                            />
                         </div>
                         <div>
                             <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Status</Label>
-                            <select
+                            <ModularSelect
                                 value={form.status}
-                                onChange={(e) => updateField('status', e.target.value)}
-                                className="w-full mt-1 bg-white/5 border border-white/10 rounded-md px-3 py-2 text-sm text-zinc-200 focus:border-violet-500/40 focus:outline-none"
-                            >
-                                {statuses.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-                            </select>
+                                onChange={(v) => updateField('status', v)}
+                                options={statuses}
+                                placeholder="Select status"
+                                label="STATUS"
+                                accentColor="#22d3ee"
+                            />
                         </div>
                     </div>
 

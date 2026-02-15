@@ -46,10 +46,10 @@ function StatCard({ icon: Icon, label, value, color, delay = 0 }) {
                 e.currentTarget.style.boxShadow = 'none';
             }}
         >
-            <div className="p-4 relative">
-                <div className="absolute top-3 right-3 opacity-[0.1]"><Icon size={28} color={color} /></div>
+            <div className="p-5 relative">
+                <div className="absolute top-4 right-4 opacity-[0.1]"><Icon size={32} color={color} /></div>
                 <p className="mono text-[9px] font-bold uppercase tracking-[0.12em] mb-1" style={{ color }}>{label}</p>
-                <p className="text-xl font-extrabold mono text-zinc-100">{value}</p>
+                <p className="text-2xl font-extrabold mono text-zinc-100">{value}</p>
             </div>
         </motion.div>
     );
@@ -62,7 +62,7 @@ function GlowPanel({ title, color = '#8b5cf6', children, delay = 0, className = 
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay }}
-            className={`rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.005] ${className}`}
+            className={`rounded-xl overflow-hidden transition-all duration-300 ${className}`}
             style={{
                 background: `linear-gradient(145deg, ${color}06, transparent)`,
                 border: `1px solid ${color}18`,
@@ -76,8 +76,8 @@ function GlowPanel({ title, color = '#8b5cf6', children, delay = 0, className = 
                 e.currentTarget.style.boxShadow = 'none';
             }}
         >
-            <div className="p-4">
-                <p className="mono text-[9px] font-bold uppercase tracking-[0.12em] mb-3" style={{ color }}>{title}</p>
+            <div className="p-5">
+                <p className="mono text-[10px] font-bold uppercase tracking-[0.12em] mb-4" style={{ color }}>{title}</p>
                 {children}
             </div>
         </motion.div>
@@ -132,9 +132,9 @@ export default function AnalyticsPage() {
     }, [tasks]);
 
     const subjectData = useMemo(() => {
-        return subjects.map((s, i) => {
+        return subjects.map((s) => {
             const hours = tasks.filter((t) => t.subject_id === s.id && t.status === 'done').reduce((a, t) => a + getHours(t), 0);
-            return { name: s.name.slice(0, 6), hours: Math.round(hours * 10) / 10, color: s.color || chartColors[i % chartColors.length] };
+            return { name: s.name, hours: Math.round(hours * 10) / 10, color: s.color };
         });
     }, [tasks, subjects]);
 
@@ -143,30 +143,12 @@ export default function AnalyticsPage() {
             const backlog = tasks.filter((t) =>
                 t.subject_id === s.id && t.status !== 'done' && t.status !== 'skipped' && dayjs(t.date).isBefore(dayjs(), 'day'),
             ).length;
-            return { name: s.name.slice(0, 6), backlog, color: s.color || '#8b5cf6' };
+            return { name: s.name, backlog, color: s.color };
         }).filter((s) => s.backlog > 0);
     }, [tasks, subjects]);
 
     return (
-        <div className="max-w-4xl space-y-4">
-            {/* Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-3 mb-1"
-            >
-                <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: '#8b5cf612', border: '1px solid #8b5cf620', boxShadow: '0 0 16px #8b5cf610' }}
-                >
-                    <BarChart3 size={20} className="text-violet-400" />
-                </div>
-                <div>
-                    <h1 className="text-xl font-extrabold text-zinc-100 tracking-tight">ANALYTICS</h1>
-                    <p className="text-[10px] mono text-zinc-600">Performance overview & insights</p>
-                </div>
-            </motion.div>
-
+        <div className="space-y-4">
             {/* Stats Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard icon={Target} label="Total Tasks" value={totalTasks} color="#8b5cf6" delay={0} />
@@ -175,84 +157,82 @@ export default function AnalyticsPage() {
                 <StatCard icon={TrendingUp} label="Completion Rate" value={`${completionRate}%`} color="#fb923c" delay={0.15} />
             </div>
 
-            {/* Daily Study Hours */}
+            {/* Daily Study Hours — full width */}
             <GlowPanel title="📊 Daily Study Hours (14 days)" color="#8b5cf6" delay={0.2}>
-                <ResponsiveContainer width="100%" height={150}>
+                <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={dailyData} barCategoryGap="15%">
-                        <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
                         <YAxis hide />
                         <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
-                        <Bar dataKey="hours" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="hours" fill="#8b5cf6" radius={[5, 5, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </GlowPanel>
 
+            {/* Weekly Trend + Category Breakdown — 2 col */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {/* Weekly Trend */}
                 <GlowPanel title="📈 Weekly Trend" color="#22d3ee" delay={0.25}>
-                    <ResponsiveContainer width="100%" height={120}>
+                    <ResponsiveContainer width="100%" height={180}>
                         <LineChart data={weeklyData}>
-                            <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                            <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
                             <YAxis hide />
                             <Tooltip contentStyle={tooltipStyle} />
-                            <Line type="monotone" dataKey="hours" stroke="#22d3ee" strokeWidth={2.5} dot={{ fill: '#22d3ee', r: 4, strokeWidth: 0 }}
+                            <Line type="monotone" dataKey="hours" stroke="#22d3ee" strokeWidth={2.5} dot={{ fill: '#22d3ee', r: 5, strokeWidth: 0 }}
                                 style={{ filter: 'drop-shadow(0 0 4px rgba(34,211,238,0.4))' }}
                             />
                         </LineChart>
                     </ResponsiveContainer>
                 </GlowPanel>
 
-                {/* Category Breakdown */}
                 <GlowPanel title="🧩 Category Breakdown" color="#f472b6" delay={0.3}>
                     {categoryData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={120}>
+                        <ResponsiveContainer width="100%" height={180}>
                             <PieChart>
-                                <Pie data={categoryData} cx="50%" cy="50%" innerRadius={28} outerRadius={45} paddingAngle={3} dataKey="value">
+                                <Pie data={categoryData} cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3} dataKey="value">
                                     {categoryData.map((e, i) => <Cell key={i} fill={e.fill} />)}
                                 </Pie>
                                 <Tooltip contentStyle={tooltipStyle} />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="flex items-center justify-center h-[120px]">
+                        <div className="flex items-center justify-center h-[180px]">
                             <p className="text-[11px] text-zinc-600 mono">No data yet</p>
                         </div>
                     )}
                 </GlowPanel>
             </div>
 
+            {/* Hours by Subject + Subject Backlogs — 2 col */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {/* Subject Hours */}
                 <GlowPanel title="📚 Hours by Subject" color="#fb923c" delay={0.35}>
                     {subjectData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={120}>
+                        <ResponsiveContainer width="100%" height={180}>
                             <BarChart data={subjectData} barCategoryGap="20%">
-                                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
                                 <YAxis hide />
                                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
-                                <Bar dataKey="hours" radius={[5, 5, 0, 0]}>{subjectData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
+                                <Bar dataKey="hours" radius={[6, 6, 0, 0]}>{subjectData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="flex items-center justify-center h-[120px]">
+                        <div className="flex items-center justify-center h-[180px]">
                             <p className="text-[11px] text-zinc-600 mono">No data yet</p>
                         </div>
                     )}
                 </GlowPanel>
 
-                {/* Subject Backlogs */}
                 <GlowPanel title="⚠️ Subject Backlogs" color="#f43f5e" delay={0.4}>
                     {subjectBacklogs.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={120}>
+                        <ResponsiveContainer width="100%" height={180}>
                             <BarChart data={subjectBacklogs} barCategoryGap="20%">
-                                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
                                 <YAxis hide />
                                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
-                                <Bar dataKey="backlog" radius={[5, 5, 0, 0]}>{subjectBacklogs.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
+                                <Bar dataKey="backlog" radius={[6, 6, 0, 0]}>{subjectBacklogs.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="flex items-center justify-center h-[120px]">
+                        <div className="flex items-center justify-center h-[180px]">
                             <p className="text-[11px] text-zinc-600 mono">No backlogs — great job!</p>
                         </div>
                     )}
