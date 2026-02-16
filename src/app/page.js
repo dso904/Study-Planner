@@ -279,107 +279,95 @@ export default function WeeklyPlannerPage() {
         </Button>
       </div>
 
-      {/* Hidden SVG filter for electric distortion */}
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <filter id="electric-distort">
-            <feTurbulence type="turbulence" baseFrequency="0.04 0.08" numOctaves="3" seed="2" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-      </svg>
-
       {/* Grid */}
-      <div className="fire-border-wrap">
-        <div className="week-grid-container">
-          <div className="week-grid" ref={gridRef} style={{ position: 'relative' }}>
-            {/* Header */}
-            <div className="week-grid-header">
-              <div className="week-grid-header-cell">
-                <span className="mono text-[8px] font-semibold text-zinc-600">TIME</span>
-              </div>
-              {weekDays.map((day) => (
-                <div key={day.date} className={`week-grid-header-cell ${day.isToday ? 'today' : ''}`}>
-                  <div className="day-header-name">{day.dayName}</div>
-                  <div className={`day-header-number ${day.isToday ? 'today' : ''}`}>{day.dayNumber}</div>
-                  <div className="day-header-month">{day.monthName}</div>
-                </div>
-              ))}
+      <div className="week-grid-container">
+        <div className="week-grid" ref={gridRef} style={{ position: 'relative' }}>
+          {/* Header */}
+          <div className="week-grid-header">
+            <div className="week-grid-header-cell">
+              <span className="mono text-[8px] font-semibold text-zinc-600">TIME</span>
             </div>
-
-            {/* Time rows (empty cells for the grid lines) */}
-            {timeSlots.map((slot) => (
-              <div key={slot.time} className="week-grid-header">
-                <div className="time-label-cell">{slot.label}</div>
-                {weekDays.map((day) => (
-                  <TimeSlotCell
-                    key={`${day.date}_${slot.time}`}
-                    isToday={day.isToday}
-                    onClick={() => handleSlotClick(day.date, slot.time)}
-                  />
-                ))}
+            {weekDays.map((day) => (
+              <div key={day.date} className={`week-grid-header-cell ${day.isToday ? 'today' : ''}`}>
+                <div className="day-header-name">{day.dayName}</div>
+                <div className={`day-header-number ${day.isToday ? 'today' : ''}`}>{day.dayNumber}</div>
+                <div className="day-header-month">{day.monthName}</div>
               </div>
             ))}
+          </div>
 
-            {/* Task overlay layer — absolutely positioned task blocks */}
-            {weekDays.map((day, dayIndex) => {
-              const dayTasks = tasksByDate.get(day.date) || [];
-              if (dayTasks.length === 0) return null;
-              return dayTasks.map((task) => {
-                const pos = getTaskPosition(task, dayIndex);
-                // Each day column is (100% - TIME_COL_WIDTH) / 7 wide
-                const colWidthPercent = `calc((100% - ${TIME_COL_WIDTH}px) / 7)`;
-                const colLeft = `calc(${TIME_COL_WIDTH}px + ${dayIndex} * (100% - ${TIME_COL_WIDTH}px) / 7 + 3px)`;
-                return (
-                  <TaskBlock
-                    key={task.id}
-                    task={task}
-                    isExpanded={expandedTaskId === task.id}
-                    onTogglePanel={handleTogglePanel}
-                    onUpdateTask={handleUpdateTask}
-                    style={{
-                      position: 'absolute',
-                      top: `${pos.top}px`,
-                      height: `${pos.height}px`,
-                      left: colLeft,
-                      width: `calc(${colWidthPercent} - 6px)`,
-                      zIndex: expandedTaskId === task.id ? 50 : 5,
-                      overflow: 'visible',
-                    }}
-                    onClick={(e) => handleTaskClick(e, task)}
-                  />
-                );
-              });
-            })}
+          {/* Time rows (empty cells for the grid lines) */}
+          {timeSlots.map((slot) => (
+            <div key={slot.time} className="week-grid-header">
+              <div className="time-label-cell">{slot.label}</div>
+              {weekDays.map((day) => (
+                <TimeSlotCell
+                  key={`${day.date}_${slot.time}`}
+                  isToday={day.isToday}
+                  onClick={() => handleSlotClick(day.date, slot.time)}
+                />
+              ))}
+            </div>
+          ))}
 
-            {/* Today column electric border overlay */}
-            {isThisWeek && (() => {
-              const todayIdx = weekDays.findIndex((d) => d.isToday);
-              if (todayIdx < 0) return null;
-              const colLeft = `calc(${TIME_COL_WIDTH}px + ${todayIdx} * (100% - ${TIME_COL_WIDTH}px) / 7)`;
-              const colWidth = `calc((100% - ${TIME_COL_WIDTH}px) / 7)`;
+          {/* Task overlay layer — absolutely positioned task blocks */}
+          {weekDays.map((day, dayIndex) => {
+            const dayTasks = tasksByDate.get(day.date) || [];
+            if (dayTasks.length === 0) return null;
+            return dayTasks.map((task) => {
+              const pos = getTaskPosition(task, dayIndex);
+              // Each day column is (100% - TIME_COL_WIDTH) / 7 wide
+              const colWidthPercent = `calc((100% - ${TIME_COL_WIDTH}px) / 7)`;
+              const colLeft = `calc(${TIME_COL_WIDTH}px + ${dayIndex} * (100% - ${TIME_COL_WIDTH}px) / 7 + 3px)`;
               return (
-                <div
-                  className="today-column-glow"
+                <TaskBlock
+                  key={task.id}
+                  task={task}
+                  isExpanded={expandedTaskId === task.id}
+                  onTogglePanel={handleTogglePanel}
+                  onUpdateTask={handleUpdateTask}
                   style={{
                     position: 'absolute',
-                    top: 0,
+                    top: `${pos.top}px`,
+                    height: `${pos.height}px`,
                     left: colLeft,
-                    width: colWidth,
-                    height: '100%',
-                    pointerEvents: 'none',
-                    zIndex: 1,
+                    width: `calc(${colWidthPercent} - 6px)`,
+                    zIndex: expandedTaskId === task.id ? 50 : 5,
+                    overflow: 'visible',
                   }}
-                >
-                  <div className="saber-beam saber-cyan" />
-                  <div className="saber-beam saber-magenta" />
-                </div>
+                  onClick={(e) => handleTaskClick(e, task)}
+                />
               );
-            })()}
+            });
+          })}
 
-            {/* Current time line */}
-            {isThisWeek && timePosition !== null && <div className="current-time-line" style={{ top: `calc(${timePosition}% + 50px)` }} />}
-          </div>
+          {/* Today column electric border overlay */}
+          {isThisWeek && (() => {
+            const todayIdx = weekDays.findIndex((d) => d.isToday);
+            if (todayIdx < 0) return null;
+            const colLeft = `calc(${TIME_COL_WIDTH}px + ${todayIdx} * (100% - ${TIME_COL_WIDTH}px) / 7)`;
+            const colWidth = `calc((100% - ${TIME_COL_WIDTH}px) / 7)`;
+            return (
+              <div
+                className="today-column-glow"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: colLeft,
+                  width: colWidth,
+                  height: '100%',
+                  pointerEvents: 'none',
+                  zIndex: 1,
+                }}
+              >
+                <div className="saber-beam saber-cyan" />
+                <div className="saber-beam saber-magenta" />
+              </div>
+            );
+          })()}
+
+          {/* Current time line */}
+          {isThisWeek && timePosition !== null && <div className="current-time-line" style={{ top: `calc(${timePosition}% + 50px)` }} />}
         </div>
       </div>
 
