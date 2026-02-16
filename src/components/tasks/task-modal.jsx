@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 /* ─── Time Spinner Component ─── */
 function TimeSpinner({ value, onChange, label }) {
@@ -259,7 +260,23 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
     };
 
     const handleSave = () => {
-        if (!form.title.trim()) return;
+        // Validate required fields with toast notifications
+        const missing = [];
+        if (!form.title.trim()) missing.push('Task title');
+        if (!form.subject_id) missing.push('Subject');
+        if (!form.date) missing.push('Date');
+        if (!form.start_time) missing.push('Start time');
+        if (!form.end_time) missing.push('End time');
+        if (!form.category) missing.push('Category');
+
+        if (missing.length > 0) {
+            toast.error(`Missing required fields`, {
+                description: missing.join(', '),
+                duration: 4000,
+            });
+            return;
+        }
+
         if (isEditing) {
             updateTask(task.id, { ...form });
         } else {
@@ -352,32 +369,6 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                             label="CATEGORY"
                             accentColor="#f472b6"
                         />
-                    </div>
-
-                    {/* Priority + Status */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Priority</Label>
-                            <ModularSelect
-                                value={form.priority}
-                                onChange={(v) => updateField('priority', v)}
-                                options={priorities}
-                                placeholder="Select priority"
-                                label="PRIORITY"
-                                accentColor="#fb923c"
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Status</Label>
-                            <ModularSelect
-                                value={form.status}
-                                onChange={(v) => updateField('status', v)}
-                                options={statuses}
-                                placeholder="Select status"
-                                label="STATUS"
-                                accentColor="#22d3ee"
-                            />
-                        </div>
                     </div>
 
                     {/* Notes */}

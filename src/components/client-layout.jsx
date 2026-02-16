@@ -7,6 +7,7 @@ import Topbar from '@/components/layout/topbar';
 import StatusBar from '@/components/layout/status-bar';
 import StoreHydrator from '@/components/store-hydrator';
 import QuickNotes from '@/components/quick-notes/quick-notes';
+import { Toaster } from '@/components/ui/sonner';
 
 function AppShell({ children }) {
     const collapsed = useAtomValue(sidebarCollapsedAtom);
@@ -36,6 +37,7 @@ export default function ClientLayout({ children }) {
         <Provider>
             <StoreHydrator />
             <AppShell>{children}</AppShell>
+            <Toaster position="top-right" richColors />
         </Provider>
     );
 }

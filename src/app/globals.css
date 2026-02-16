@@ -176,12 +176,70 @@
   background-clip: text;
 }
 
+/* ─── Electric Fire Border Wrap ─── */
+.fire-border-wrap {
+  position: relative;
+  padding: 2px;
+  border-radius: 12px;
+  background: conic-gradient(from var(--angle),
+      #ff4500,
+      #ff8c00,
+      #ffd700,
+      #ffaa00,
+      #ff6347,
+      #ff4500,
+      #cc3700,
+      #ff8c00,
+      #ffd700,
+      #ff4500);
+  animation: borderSpin 3s linear infinite;
+  filter: url(#electric-distort);
+  box-shadow:
+    0 0 8px rgba(255, 140, 0, 0.5),
+    0 0 20px rgba(255, 69, 0, 0.3),
+    0 0 40px rgba(255, 165, 0, 0.15),
+    inset 0 0 8px rgba(255, 140, 0, 0.1);
+}
+
+/* Pulsing outer glow halo */
+.fire-border-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 16px;
+  background: conic-gradient(from var(--angle),
+      transparent,
+      rgba(255, 140, 0, 0.3),
+      transparent,
+      rgba(255, 215, 0, 0.2),
+      transparent,
+      rgba(255, 69, 0, 0.3),
+      transparent);
+  animation: borderSpin 3s linear infinite, firePulse 2s ease-in-out infinite;
+  filter: blur(10px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes firePulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+}
+
 /* ─── Weekly Grid ─── */
 .week-grid-container {
   overflow: auto;
   border-radius: 10px;
-  border: 1px solid oklch(1 0 0 / 10%);
+  border: none;
   background: oklch(0.155 0.014 280);
+  position: relative;
 }
 
 .week-grid {
@@ -207,7 +265,7 @@
 }
 
 .week-grid-header-cell.today {
-  background: oklch(0.65 0.22 15 / 10%);
+  background: oklch(0.7 0.15 195 / 10%);
 }
 
 .day-header-name {
@@ -227,8 +285,8 @@
 }
 
 .day-header-number.today {
-  color: #f43f5e;
-  text-shadow: 0 0 12px oklch(0.65 0.22 15 / 40%);
+  color: #22d3ee;
+  text-shadow: 0 0 14px rgba(34, 211, 238, 0.5), 0 0 6px rgba(34, 211, 238, 0.3);
 }
 
 .day-header-month {
@@ -251,7 +309,7 @@
 }
 
 .time-slot-cell {
-  min-height: 54px;
+  min-height: 80px;
   padding: 3px;
   border-bottom: 1px solid oklch(1 0 0 / 7%);
   border-right: 1px solid oklch(1 0 0 / 7%);
@@ -265,11 +323,11 @@
 }
 
 .time-slot-cell:hover {
-  background: oklch(0.65 0.22 15 / 4%);
+  background: oklch(0.7 0.15 195 / 6%);
 }
 
 .time-slot-cell.today {
-  background: oklch(0.65 0.22 15 / 8%);
+  background: oklch(0.7 0.15 195 / 8%);
 }
 
 
@@ -297,14 +355,42 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  position: relative;
 }
 
 .task-block-abs:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px oklch(0 0 0 / 20%);
-  z-index: 10 !important;
 }
 
+/* ─── Status Visual Treatments ─── */
+
+/* Pending — normal look, subtle left glow */
+.task-block-abs.pending {
+  border-left-width: 3px;
+}
+
+/* In Progress — animated pulsing border glow */
+.task-block-abs.in_progress {
+  border-left-width: 4px;
+  border-left-color: #22d3ee !important;
+  box-shadow: inset 0 0 12px rgba(34, 211, 238, 0.1), 0 0 8px rgba(34, 211, 238, 0.15);
+  animation: inProgressPulse 2s ease-in-out infinite;
+}
+
+@keyframes inProgressPulse {
+
+  0%,
+  100% {
+    box-shadow: inset 0 0 12px rgba(34, 211, 238, 0.1), 0 0 8px rgba(34, 211, 238, 0.15);
+  }
+
+  50% {
+    box-shadow: inset 0 0 18px rgba(34, 211, 238, 0.2), 0 0 14px rgba(34, 211, 238, 0.25);
+  }
+}
+
+/* Done — faded with strikethrough */
 .task-block-abs.done {
   opacity: 0.5;
 }
@@ -313,19 +399,49 @@
   text-decoration: line-through;
 }
 
-/* Quick-complete check button — neon-rose glassmorphic */
-.task-block-check {
+/* Skipped — faded with diagonal stripes */
+.task-block-abs.skipped {
+  opacity: 0.55;
+  background-image: repeating-linear-gradient(-45deg,
+      transparent,
+      transparent 4px,
+      rgba(100, 116, 139, 0.12) 4px,
+      rgba(100, 116, 139, 0.12) 6px) !important;
+}
+
+.task-block-abs.skipped .task-block-title {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Missed — red-tinted overlay + red border */
+.task-block-abs.missed {
+  border-left-color: #f43f5e !important;
+  box-shadow: inset 0 0 20px rgba(244, 63, 94, 0.15), 0 0 6px rgba(244, 63, 94, 0.2);
+}
+
+.task-block-abs.missed::after {
+  content: '';
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 22px;
-  height: 22px;
+  inset: 0;
   border-radius: 6px;
-  border: 1.5px solid rgba(244, 63, 94, 0.4);
-  background: rgba(15, 14, 42, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: rgba(251, 113, 133, 0.7);
+  background: rgba(244, 63, 94, 0.08);
+  pointer-events: none;
+}
+
+/* ─── Side Panel Tab (arrow toggle) ─── */
+.task-side-tab {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: rgba(15, 14, 42, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -333,69 +449,261 @@
   opacity: 0;
   transition: all 0.2s ease;
   padding: 0;
-  box-shadow: 0 0 0 0 transparent;
+  z-index: 3;
 }
 
-.task-block-abs:hover .task-block-check {
+.task-block-abs:hover .task-side-tab {
   opacity: 1;
 }
 
-.task-block-check:hover {
-  transform: scale(1.12);
-  background: linear-gradient(135deg, rgba(244, 63, 94, 0.5), rgba(251, 146, 60, 0.5));
-  border-color: #fb7185;
-  color: #fff;
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.4), 0 0 4px rgba(244, 63, 94, 0.2);
+.task-side-tab:hover {
+  background: rgba(34, 211, 238, 0.2);
+  border-color: rgba(34, 211, 238, 0.35);
+  color: #22d3ee;
 }
 
-/* Done state — vibrant gradient with persistent glow */
-.task-block-check.is-done {
+.task-side-tab.is-open {
   opacity: 1;
-  background: linear-gradient(135deg, #f43f5e, #e11d48);
-  border-color: #fb7185;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(244, 63, 94, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: rgba(34, 211, 238, 0.15);
+  border-color: rgba(34, 211, 238, 0.3);
+  color: #22d3ee;
 }
 
-.task-block-check.is-done:hover {
-  background: linear-gradient(135deg, #e11d48, #be123c);
-  box-shadow: 0 0 16px rgba(244, 63, 94, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+.task-side-tab.is-open svg {
+  transform: rotate(180deg);
 }
 
-.task-block-abs.done .task-block-check {
+.task-side-tab svg {
+  transition: transform 0.2s ease;
+}
+
+/* ─── Task block content wrapper ─── */
+.task-block-content {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.2s ease;
+}
+
+.task-block-abs.panel-open .task-block-content {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* ─── Collapsible Side Panel (overlays inside the block from right) ─── */
+.task-side-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  background: rgba(10, 8, 30, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-left: 1.5px solid rgba(34, 211, 238, 0.2);
+  border-radius: 0 6px 6px 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+}
+
+.task-side-panel.is-open {
+  width: 100%;
   opacity: 1;
+  pointer-events: auto;
+  padding: 6px 8px;
 }
 
-/* Always show checkmark on active tasks */
-.task-block-abs.in_progress .task-block-check,
-.task-block-abs.pending .task-block-check {
-  opacity: 1;
+/* Panel row (status or priority group) */
+.panel-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.panel-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Chip row — horizontal */
+.panel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+/* Individual chip — emoji only, compact */
+.panel-chip {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.panel-chip:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.1);
+}
+
+.panel-chip.active {
+  box-shadow: 0 0 6px color-mix(in srgb, var(--chip-color, #22d3ee) 30%, transparent);
+  transform: scale(1.05);
 }
 
 .task-block-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: oklch(0.9 0.01 280);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .task-block-time {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  color: oklch(0.55 0.02 280);
-  margin-top: 1px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .task-block-category {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
-  color: oklch(0.45 0.02 280);
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 1px;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Today Column – Dual Saber Traveling Beams ─── */
+.today-column-glow {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(100, 120, 160, 0.12);
+}
+
+/* Shared beam base */
+.saber-beam {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* ── Cyan beam (clockwise) ── */
+.saber-cyan::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle),
+      transparent 0deg,
+      transparent 260deg,
+      #0e7490 290deg,
+      #22d3ee 330deg,
+      #67e8f9 345deg,
+      #22d3ee 355deg,
+      transparent 360deg);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  animation: borderSpin 4s linear infinite;
+}
+
+/* Cyan glow halo */
+.saber-cyan::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  padding: 5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle),
+      transparent 0deg,
+      transparent 270deg,
+      #22d3ee 320deg,
+      #67e8f9 345deg,
+      transparent 360deg);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  filter: blur(8px);
+  opacity: 0.7;
+  animation: borderSpin 4s linear infinite;
+}
+
+/* ── Magenta beam (counter-clockwise) ── */
+.saber-magenta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle),
+      transparent 0deg,
+      transparent 260deg,
+      #701a75 290deg,
+      #d946ef 330deg,
+      #f0abfc 345deg,
+      #d946ef 355deg,
+      transparent 360deg);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  animation: borderSpin 4s linear infinite reverse;
+}
+
+/* Magenta glow halo */
+.saber-magenta::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  padding: 5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle),
+      transparent 0deg,
+      transparent 270deg,
+      #d946ef 320deg,
+      #f0abfc 345deg,
+      transparent 360deg);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  filter: blur(8px);
+  opacity: 0.7;
+  animation: borderSpin 4s linear infinite reverse;
 }
 
 /* ─── Current Time Line ─── */

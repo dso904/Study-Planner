@@ -67,7 +67,7 @@ export const SUBJECTS = [
     { id: 'chemistry', name: 'Chemistry', emoji: '🧪', icon: '⚗️', color: '#f472b6' },
     { id: 'maths', name: 'Maths', emoji: '📐', icon: '🧮', color: '#ef4444' },
     { id: 'biology', name: 'Biology', emoji: '🧬', icon: '🌿', color: '#34d399' },
-    { id: 'english', name: 'English', emoji: '📝', icon: '📖', color: '#a78bfa' },
+    { id: 'english', name: 'English', emoji: '📝', icon: '📖', color: '#60a5fa' },
 ];
 
 // ─── Base Atoms (localStorage = cache only) ──────────────────
