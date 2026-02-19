@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, SUBJECTS } from '@/lib/atoms';
+import { tasksAtom, SUBJECTS, hydrationStatusAtom } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -92,9 +92,33 @@ function GlowPanel({ title, color = '#8b5cf6', children, delay = 0, className = 
     );
 }
 
+/* ─── Loading Skeleton ─── */
+function DashboardSkeleton() {
+    return (
+        <div className="space-y-4 animate-pulse">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="rounded-xl h-[76px]" style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.1)' }}>
+                        <div className="p-5 space-y-2">
+                            <div className="h-2 w-16 rounded bg-white/5" />
+                            <div className="h-5 w-10 rounded bg-white/8" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="rounded-xl h-[230px]" style={{ background: 'rgba(139,92,246,0.04)', border: '1px solid rgba(139,92,246,0.08)' }} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div className="rounded-xl h-[230px]" style={{ background: 'rgba(139,92,246,0.04)', border: '1px solid rgba(139,92,246,0.08)' }} />
+                <div className="rounded-xl h-[230px]" style={{ background: 'rgba(34,211,238,0.04)', border: '1px solid rgba(34,211,238,0.08)' }} />
+            </div>
+        </div>
+    );
+}
+
 export default function DashboardPage() {
     const tasks = useAtomValue(tasksAtom) || [];
     const subjects = SUBJECTS;
+    const hydrationStatus = useAtomValue(hydrationStatusAtom);
 
     /* ── Today ── */
     // M6-FIX: Regular variable, not memoized-once, so it updates past midnight
@@ -181,6 +205,11 @@ export default function DashboardPage() {
             name: name.replaceAll('_', ' '), value, fill: chartColors[i % chartColors.length],
         }));
     }, [tasks]);
+
+    // Show skeleton until data is loaded from Supabase to avoid "0 stats" flash
+    if (hydrationStatus === 'idle' || hydrationStatus === 'loading') {
+        return <DashboardSkeleton />;
+    }
 
     return (
         <div className="space-y-4">

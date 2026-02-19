@@ -10,8 +10,8 @@ import isoWeek from 'dayjs/plugin/isoWeek';
 dayjs.extend(isoWeek);
 
 // ─── Supabase Helpers ────────────────────────────────────────
-// Local-First (Optimistic UI): all mutations update local state FIRST, then push to Supabase.
-// localStorage is only a cache for instant hydration on load.
+// Cloud-Only: all mutations update React state (optimistic UI), then push to Supabase.
+// No localStorage caching — data is always fetched fresh from the database on load.
 
 async function dbUpsert(table, data) {
     if (!supabase) return;
@@ -86,13 +86,13 @@ export function getSubjectColorById(subjectId) {
     return SUBJECT_COLOR_MAP[subjectId] || DEFAULT_SUBJECT_COLOR;
 }
 
-// ─── Base Atoms (localStorage = cache only) ──────────────────
-export const tasksAtom = atomWithStorage('dp-tasks', []);
-export const chaptersAtom = atomWithStorage('dp-chapters', []);
-export const notesAtom = atomWithStorage('dp-notes', []);
+// ─── Base Atoms (Cloud-Only — no localStorage) ──────────────
+export const tasksAtom = atom([]);
+export const chaptersAtom = atom([]);
+export const notesAtom = atom([]);
 
-// L5-FIX: Track hydration status so UI can show loading indicators
-// Values: 'idle' | 'syncing' | 'done' | 'error'
+// Track loading status so UI can show loading indicators
+// Values: 'idle' | 'loading' | 'done' | 'error'
 export const hydrationStatusAtom = atom('idle');
 
 // ─── UI Atoms ────────────────────────────────────────────────
@@ -110,25 +110,13 @@ export const SCHEDULE = {
     weekStartDay: 1,
 };
 
-// ─── Task Actions Hook (Cloud-First) ─────────────────────────
+// ─── Task Actions Hook (Cloud-Only) ──────────────────────────
 export function useTaskActions() {
     const [tasks, setTasks] = useAtom(tasksAtom);
     const [linkedTask, setLinkedTask] = useAtom(timerLinkedTaskAtom);
     const tasksRef = useRef(tasks);
-    const debounceRef = useRef({}); // Store timeouts by task ID
+    const debounceRef = useRef({});
     useEffect(() => { tasksRef.current = tasks; }, [tasks]);
-
-    // H5-FIX: Flush all pending debounced cloud syncs on unmount
-    useEffect(() => {
-        return () => {
-            Object.entries(debounceRef.current).forEach(([id, timer]) => {
-                clearTimeout(timer);
-                const current = tasksRef.current.find((t) => t.id === id);
-                if (current) dbUpsert('tasks', current);
-            });
-            debounceRef.current = {};
-        };
-    }, []);
 
     const addTask = useCallback((task) => {
         const record = { ...task, updated_at: task.updated_at || new Date().toISOString() };
@@ -181,24 +169,12 @@ export function useTaskActions() {
     return { tasks, addTask, updateTask, deleteTask, getTasksForDate, getTasksForWeek, getBacklogs };
 }
 
-// ─── Chapter Actions Hook (Cloud-First) ──────────────────────
+// ─── Chapter Actions Hook (Cloud-Only) ───────────────────────
 export function useChapterActions() {
     const [chapters, setChapters] = useAtom(chaptersAtom);
     const chaptersRef = useRef(chapters);
     const debounceRef = useRef({});
     useEffect(() => { chaptersRef.current = chapters; }, [chapters]);
-
-    // H5-FIX: Flush pending chapter syncs on unmount
-    useEffect(() => {
-        return () => {
-            Object.entries(debounceRef.current).forEach(([id, timer]) => {
-                clearTimeout(timer);
-                const c = chaptersRef.current.find((x) => x.id === id);
-                if (c) dbUpsert('chapters', c);
-            });
-            debounceRef.current = {};
-        };
-    }, []);
 
     const addChapter = useCallback((chapter) => {
         const record = { ...chapter, updated_at: new Date().toISOString() };
@@ -230,25 +206,12 @@ export function useChapterActions() {
     return { chapters, addChapter, updateChapter, deleteChapter, getChaptersBySubject };
 }
 
-// ─── Note Actions Hook (Cloud-First) ─────────────────────────
+// ─── Note Actions Hook (Cloud-Only) ──────────────────────────
 export function useNoteActions() {
     const [notes, setNotes] = useAtom(notesAtom);
-    // H2-FIX: Use a ref (like tasks/chapters) instead of reading from localStorage
     const notesRef = useRef(notes);
     const debounceRef = useRef({});
     useEffect(() => { notesRef.current = notes; }, [notes]);
-
-    // H5-FIX: Flush pending note syncs on unmount
-    useEffect(() => {
-        return () => {
-            Object.entries(debounceRef.current).forEach(([id, timer]) => {
-                clearTimeout(timer);
-                const note = notesRef.current.find((n) => n.id === id);
-                if (note) dbUpsert('notes', note);
-            });
-            debounceRef.current = {};
-        };
-    }, []);
 
     const addNote = useCallback((text) => {
         const note = {
@@ -266,7 +229,6 @@ export function useNoteActions() {
         setNotes((prev) => prev.map((n) =>
             n.id === id ? { ...n, done: !n.done, updated_at: new Date().toISOString() } : n
         ));
-        // H2-FIX: Read from ref instead of localStorage
         if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
 
         debounceRef.current[id] = setTimeout(() => {
@@ -286,7 +248,6 @@ export function useNoteActions() {
         setNotes((prev) => prev.map((n) =>
             n.id === id ? { ...n, text, updated_at } : n
         ));
-        // H2-FIX: Read from ref instead of localStorage
         if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
 
         debounceRef.current[id] = setTimeout(() => {
@@ -318,43 +279,8 @@ export function useWeekNavigation() {
     return { currentWeekStart, setCurrentWeekStart, goToPreviousWeek, goToNextWeek, goToThisWeek };
 }
 
-// ─── Conflict Resolution ─────────────────────────────────────
-function mergeRecords(localRecords, serverRecords) {
-    const serverMap = new Map();
-    for (const s of serverRecords) serverMap.set(s.id, s);
-
-    const localMap = new Map();
-    for (const l of localRecords) localMap.set(l.id, l);
-
-    const merged = [];
-    const toSyncUp = [];
-
-    for (const local of localRecords) {
-        const server = serverMap.get(local.id);
-        if (!server) {
-            merged.push(local);
-            toSyncUp.push(local);
-        } else {
-            const localTime = new Date(local.updated_at || local.created_at || 0).getTime();
-            const serverTime = new Date(server.updated_at || server.created_at || 0).getTime();
-            if (serverTime > localTime) {
-                merged.push(server);
-            } else {
-                merged.push(local);
-                if (localTime > serverTime) toSyncUp.push(local);
-            }
-        }
-    }
-
-    for (const server of serverRecords) {
-        if (!localMap.has(server.id)) merged.push(server);
-    }
-
-    return { merged, toSyncUp };
-}
-
-// ─── Hydrate from Supabase (Cloud → Local merge) ────────────
-export async function hydrateFromSupabase(setTasks, setChapters, setNotes, getLocalTasks, getLocalChapters, getLocalNotes) {
+// ─── Load from Supabase (Cloud-Only) ─────────────────────────
+export async function loadFromSupabase(setTasks, setChapters, setNotes) {
     if (!supabase) return;
     try {
         const [serverTasks, serverChapters, serverNotes] = await Promise.all([
@@ -363,33 +289,10 @@ export async function hydrateFromSupabase(setTasks, setChapters, setNotes, getLo
             dbFetchAll('notes'),
         ]);
 
-        if (serverTasks) {
-            const { merged, toSyncUp } = mergeRecords(getLocalTasks(), serverTasks);
-            setTasks(merged);
-            if (toSyncUp.length > 0) {
-                await supabase.from('tasks').upsert(toSyncUp);
-                console.info(`[Sync] Pushed ${toSyncUp.length} local tasks to cloud`);
-            }
-        }
-
-        if (serverChapters) {
-            const { merged, toSyncUp } = mergeRecords(getLocalChapters(), serverChapters);
-            setChapters(merged);
-            if (toSyncUp.length > 0) {
-                await supabase.from('chapters').upsert(toSyncUp);
-                console.info(`[Sync] Pushed ${toSyncUp.length} local chapters to cloud`);
-            }
-        }
-
-        if (serverNotes) {
-            const { merged, toSyncUp } = mergeRecords(getLocalNotes(), serverNotes);
-            setNotes(merged);
-            if (toSyncUp.length > 0) {
-                await supabase.from('notes').upsert(toSyncUp);
-                console.info(`[Sync] Pushed ${toSyncUp.length} local notes to cloud`);
-            }
-        }
+        if (serverTasks) setTasks(serverTasks);
+        if (serverChapters) setChapters(serverChapters);
+        if (serverNotes) setNotes(serverNotes);
     } catch (e) {
-        console.warn('[DB] hydration failed, using localStorage fallback:', e.message);
+        console.warn('[DB] Failed to load data from Supabase:', e.message);
     }
 }

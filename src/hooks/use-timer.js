@@ -134,16 +134,19 @@ export function useTimer() {
                     const newSeconds = baseSecondsRef.current + elapsed;
                     setSeconds(newSeconds);
 
-                    // Robust Task Update: Check if we crossed a minute boundary
+                    // Robust Task Update: consume ALL accumulated minute boundaries
+                    // (handles browser tab throttling where large deltas accumulate)
                     const task = linkedTaskRef.current;
                     if (task) {
-                        const timeSinceLastUpdate = newSeconds - lastTaskUpdateRef.current;
-                        if (timeSinceLastUpdate >= 60) {
-                            updateTaskRef.current(task.id, {
-                                time_spent: (task.time_spent || 0) + 60,
-                            });
-                            // Advance the ref by exactly 60s to prevent drift
+                        let minutesAccumulated = 0;
+                        while (newSeconds - lastTaskUpdateRef.current >= 60) {
+                            minutesAccumulated += 60;
                             lastTaskUpdateRef.current += 60;
+                        }
+                        if (minutesAccumulated > 0) {
+                            updateTaskRef.current(task.id, {
+                                time_spent: (task.time_spent || 0) + minutesAccumulated,
+                            });
                         }
                     }
 
