@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAtom, useAtomValue } from 'jotai';
 import { currentWeekStartAtom, notesPanelOpenAtom, notesAtom } from '@/lib/atoms';
+import { timerOpenAtom, timerRunningAtom, timerSecondsAtom, timerModeAtom } from '@/lib/timer-atoms';
 import { getWeekRangeLabel, isCurrentWeek } from '@/lib/dates';
-import { Input } from '@/components/ui/input';
+import { Printer, StickyNote, Timer, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { Search, Printer, StickyNote } from 'lucide-react';
 import PrintModal from '@/components/print-modal';
 
 const viewTitles = {
@@ -25,6 +25,17 @@ export default function Topbar() {
     const [notesOpen, setNotesOpen] = useAtom(notesPanelOpenAtom);
     const notes = useAtomValue(notesAtom) || [];
     const undoneCount = notes.filter((n) => !n.done).length;
+
+    const [timerOpen, setTimerOpen] = useAtom(timerOpenAtom);
+    const timerRunning = useAtomValue(timerRunningAtom);
+    const timerSeconds = useAtomValue(timerSecondsAtom);
+    const timerMode = useAtomValue(timerModeAtom);
+
+    const formatTimerTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    };
 
     return (
         <>
@@ -52,15 +63,29 @@ export default function Topbar() {
                     )}
                 </div>
 
-                {/* Right: Search + Notes + Print */}
+                {/* Right: Timer + Notes + Print */}
                 <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-                        <Input
-                            placeholder="Search tasks..."
-                            className="pl-9 w-56 bg-white/4 border-transparent focus:bg-white/8 focus:border-rose-500/40 text-sm"
-                        />
-                    </div>
+
+                    {/* Timer toggle */}
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`relative text-zinc-500 hover:text-zinc-200 ${timerOpen ? 'text-cyan-400 bg-cyan-500/10' : ''}`}
+                                    onClick={() => setTimerOpen(!timerOpen)}
+                                >
+                                    {timerMode === 'timer' ? (
+                                        <Timer size={18} />
+                                    ) : (
+                                        <Clock size={18} />
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Timer / Stopwatch</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
 
                     {/* Quick Notes toggle */}
                     <TooltipProvider>

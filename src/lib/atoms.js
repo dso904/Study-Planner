@@ -2,6 +2,7 @@
 
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
+import { timerLinkedTaskAtom } from './timer-atoms';
 import { useRef, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import dayjs from 'dayjs';
@@ -32,10 +33,14 @@ async function dbDelete(table, id) {
     }
 }
 
+// L6-FIX: Make the 180-day cutoff explicit via logging and documentation
+// Note: Tasks older than `daysBack` days are NOT fetched from the server.
+// If the user needs historical data beyond this window, increase the value.
 async function dbFetchTasks(daysBack = 180) {
     if (!supabase) return null;
     try {
         const cutoff = dayjs().subtract(daysBack, 'day').format('YYYY-MM-DD');
+        console.info(`[DB] Fetching tasks from ${cutoff} onward (${daysBack}-day window)`);
         const { data, error } = await supabase
             .from('tasks')
             .select('*')
@@ -70,10 +75,25 @@ export const SUBJECTS = [
     { id: 'english', name: 'English', emoji: '📝', icon: '📖', color: '#60a5fa' },
 ];
 
+// I1-FIX: Single source of truth for subject colors — derive from SUBJECTS
+export const SUBJECT_COLOR_MAP = Object.fromEntries(
+    SUBJECTS.map((s) => [s.id, s.color])
+);
+const DEFAULT_SUBJECT_COLOR = '#8b5cf6';
+
+/** Get a subject's color by its id. Returns a default purple if not found. */
+export function getSubjectColorById(subjectId) {
+    return SUBJECT_COLOR_MAP[subjectId] || DEFAULT_SUBJECT_COLOR;
+}
+
 // ─── Base Atoms (localStorage = cache only) ──────────────────
 export const tasksAtom = atomWithStorage('dp-tasks', []);
 export const chaptersAtom = atomWithStorage('dp-chapters', []);
 export const notesAtom = atomWithStorage('dp-notes', []);
+
+// L5-FIX: Track hydration status so UI can show loading indicators
+// Values: 'idle' | 'syncing' | 'done' | 'error'
+export const hydrationStatusAtom = atom('idle');
 
 // ─── UI Atoms ────────────────────────────────────────────────
 export const sidebarCollapsedAtom = atomWithStorage('dp-sidebar-collapsed', false);
@@ -93,9 +113,22 @@ export const SCHEDULE = {
 // ─── Task Actions Hook (Cloud-First) ─────────────────────────
 export function useTaskActions() {
     const [tasks, setTasks] = useAtom(tasksAtom);
+    const [linkedTask, setLinkedTask] = useAtom(timerLinkedTaskAtom);
     const tasksRef = useRef(tasks);
     const debounceRef = useRef({}); // Store timeouts by task ID
     useEffect(() => { tasksRef.current = tasks; }, [tasks]);
+
+    // H5-FIX: Flush all pending debounced cloud syncs on unmount
+    useEffect(() => {
+        return () => {
+            Object.entries(debounceRef.current).forEach(([id, timer]) => {
+                clearTimeout(timer);
+                const current = tasksRef.current.find((t) => t.id === id);
+                if (current) dbUpsert('tasks', current);
+            });
+            debounceRef.current = {};
+        };
+    }, []);
 
     const addTask = useCallback((task) => {
         const record = { ...task, updated_at: task.updated_at || new Date().toISOString() };
@@ -118,8 +151,11 @@ export function useTaskActions() {
 
     const deleteTask = useCallback((id) => {
         setTasks((prev) => prev.filter((t) => t.id !== id));
+        if (linkedTask && linkedTask.id === id) {
+            setLinkedTask(null);
+        }
         dbDelete('tasks', id);
-    }, [setTasks]);
+    }, [setTasks, linkedTask, setLinkedTask]);
 
     const getTasksForDate = useCallback((date) => {
         const dateStr = dayjs(date).format('YYYY-MM-DD');
@@ -151,6 +187,18 @@ export function useChapterActions() {
     const chaptersRef = useRef(chapters);
     const debounceRef = useRef({});
     useEffect(() => { chaptersRef.current = chapters; }, [chapters]);
+
+    // H5-FIX: Flush pending chapter syncs on unmount
+    useEffect(() => {
+        return () => {
+            Object.entries(debounceRef.current).forEach(([id, timer]) => {
+                clearTimeout(timer);
+                const c = chaptersRef.current.find((x) => x.id === id);
+                if (c) dbUpsert('chapters', c);
+            });
+            debounceRef.current = {};
+        };
+    }, []);
 
     const addChapter = useCallback((chapter) => {
         const record = { ...chapter, updated_at: new Date().toISOString() };
@@ -185,7 +233,22 @@ export function useChapterActions() {
 // ─── Note Actions Hook (Cloud-First) ─────────────────────────
 export function useNoteActions() {
     const [notes, setNotes] = useAtom(notesAtom);
+    // H2-FIX: Use a ref (like tasks/chapters) instead of reading from localStorage
+    const notesRef = useRef(notes);
     const debounceRef = useRef({});
+    useEffect(() => { notesRef.current = notes; }, [notes]);
+
+    // H5-FIX: Flush pending note syncs on unmount
+    useEffect(() => {
+        return () => {
+            Object.entries(debounceRef.current).forEach(([id, timer]) => {
+                clearTimeout(timer);
+                const note = notesRef.current.find((n) => n.id === id);
+                if (note) dbUpsert('notes', note);
+            });
+            debounceRef.current = {};
+        };
+    }, []);
 
     const addNote = useCallback((text) => {
         const note = {
@@ -203,12 +266,11 @@ export function useNoteActions() {
         setNotes((prev) => prev.map((n) =>
             n.id === id ? { ...n, done: !n.done, updated_at: new Date().toISOString() } : n
         ));
-        // Read latest after state update
+        // H2-FIX: Read from ref instead of localStorage
         if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
 
         debounceRef.current[id] = setTimeout(() => {
-            const stored = JSON.parse(localStorage.getItem('dp-notes') || '[]');
-            const note = stored.find((n) => n.id === id);
+            const note = notesRef.current.find((n) => n.id === id);
             if (note) dbUpsert('notes', note);
             delete debounceRef.current[id];
         }, 500);
@@ -224,11 +286,11 @@ export function useNoteActions() {
         setNotes((prev) => prev.map((n) =>
             n.id === id ? { ...n, text, updated_at } : n
         ));
+        // H2-FIX: Read from ref instead of localStorage
         if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
 
         debounceRef.current[id] = setTimeout(() => {
-            const stored = JSON.parse(localStorage.getItem('dp-notes') || '[]');
-            const note = stored.find((n) => n.id === id);
+            const note = notesRef.current.find((n) => n.id === id);
             if (note) dbUpsert('notes', note);
             delete debounceRef.current[id];
         }, 1000);

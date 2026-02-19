@@ -27,7 +27,8 @@ const tooltipStyle = {
 
 function getHours(task) {
     if (!task.start_time || !task.end_time) return 0;
-    return dayjs(task.end_time, 'HH:mm').diff(dayjs(task.start_time, 'HH:mm'), 'minute') / 60;
+    // M5-FIX: Clamp to 0 in case end_time < start_time
+    return Math.max(0, dayjs(task.end_time, 'HH:mm').diff(dayjs(task.start_time, 'HH:mm'), 'minute') / 60);
 }
 
 /* ─── Glowing Stat Card ─── */
@@ -96,7 +97,8 @@ export default function DashboardPage() {
     const subjects = SUBJECTS;
 
     /* ── Today ── */
-    const today = useMemo(() => dayjs().format('YYYY-MM-DD'), []);
+    // M6-FIX: Regular variable, not memoized-once, so it updates past midnight
+    const today = dayjs().format('YYYY-MM-DD');
     const { todayDone, todayTotal } = useMemo(() => {
         const todayTasks = tasks.filter((t) => t.date === today);
         return { todayDone: todayTasks.filter((t) => t.status === 'done').length, todayTotal: todayTasks.length };
@@ -104,7 +106,8 @@ export default function DashboardPage() {
 
     /* ── This week ── */
     const { weekDone, weekTotal, weekHours, weekProgress, weekTasks } = useMemo(() => {
-        const weekStart = dayjs().startOf('week').add(1, 'day');
+        // M1-FIX: Use startOf('isoWeek') for consistent Monday start
+        const weekStart = dayjs().startOf('isoWeek');
         const wt = tasks.filter((t) => {
             const d = dayjs(t.date);
             return d.isAfter(weekStart.subtract(1, 'day')) && d.isBefore(weekStart.add(7, 'day'));
@@ -154,7 +157,8 @@ export default function DashboardPage() {
     const weeklyData = useMemo(() => {
         const weeks = [];
         for (let i = 3; i >= 0; i--) {
-            const start = dayjs().subtract(i, 'week').startOf('week').add(1, 'day');
+            // M1-FIX: Use startOf('isoWeek') for consistent Monday start
+            const start = dayjs().subtract(i, 'week').startOf('isoWeek');
             const end = start.add(6, 'day');
             const wt = tasks.filter((t) => {
                 const d = dayjs(t.date);
@@ -174,7 +178,7 @@ export default function DashboardPage() {
             cats[cat] = (cats[cat] || 0) + 1;
         });
         return Object.entries(cats).map(([name, value], i) => ({
-            name: name.replace('_', ' '), value, fill: chartColors[i % chartColors.length],
+            name: name.replaceAll('_', ' '), value, fill: chartColors[i % chartColors.length],
         }));
     }, [tasks]);
 

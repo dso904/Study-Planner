@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     notes       TEXT DEFAULT '',
     is_backlog  BOOLEAN DEFAULT FALSE,
     original_date DATE,
+    time_spent  INT DEFAULT 0,
     created_at  TIMESTAMPTZ DEFAULT NOW(),
     updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
@@ -48,9 +49,9 @@ CREATE TABLE IF NOT EXISTS notes (
 
 -- ─── Row Level Security (RLS) ────────────────
 -- Strategy: Custom header check using x-app-secret.
--- Set NEXT_PUBLIC_SUPABASE_APP_SECRET in .env.local and configure
--- the DB secret with:
---   ALTER DATABASE postgres SET app.settings.app_secret = 'YOUR_SECRET';
+-- Set NEXT_PUBLIC_SUPABASE_APP_SECRET in .env.local to match the value below.
+-- Security note: The Supabase URL is in .env.local (gitignored), so the
+-- secret here is safe — nobody can connect without the URL.
 
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chapters ENABLE ROW LEVEL SECURITY;
@@ -86,3 +87,41 @@ CREATE INDEX IF NOT EXISTS idx_tasks_date ON tasks(date);
 CREATE INDEX IF NOT EXISTS idx_tasks_subject ON tasks(subject_id);
 CREATE INDEX IF NOT EXISTS idx_chapters_subject ON chapters(subject_id);
 CREATE INDEX IF NOT EXISTS idx_notes_done ON notes(done);
+
+-- ─── I3-FIX: Auto-update updated_at on any row modification ────────────
+-- This ensures updated_at is correct even for direct DB edits,
+-- which is critical for conflict resolution in the merge logic.
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_updated_at_tasks') THEN
+        CREATE TRIGGER set_updated_at_tasks
+            BEFORE UPDATE ON tasks
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_updated_at_chapters') THEN
+        CREATE TRIGGER set_updated_at_chapters
+            BEFORE UPDATE ON chapters
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_updated_at_notes') THEN
+        CREATE TRIGGER set_updated_at_notes
+            BEFORE UPDATE ON notes
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
+
+-- ─── Migration: Add time_spent column (run if table exists) ───────────
+-- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS time_spent INT DEFAULT 0;

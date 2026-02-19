@@ -25,6 +25,7 @@ function NavItem({ item, active, collapsed }) {
     const content = (
         <Link
             href={item.key}
+            aria-current={active ? 'page' : undefined}
             className={`
                 sidebar-nav-item
                 flex items-center gap-3 w-full rounded-xl transition-all duration-200 relative

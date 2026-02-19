@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, SUBJECTS, useTaskActions } from '@/lib/atoms';
+import { tasksAtom, useTaskActions, SUBJECTS, getSubjectColorById } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCheck, X, CalendarClock, Trash2 } from 'lucide-react';
 
-const subjectColors = {
-    physics: '#facc15', chemistry: '#f472b6', maths: '#ef4444', biology: '#34d399',
-};
+// I1-FIX: Removed local subjectColors map — using centralized getSubjectColorById
 
 export default function BacklogsPage() {
     const tasks = useAtomValue(tasksAtom) || [];
@@ -53,8 +51,7 @@ export default function BacklogsPage() {
     };
 
     const getSubjectColor = (subjectId) => {
-        const s = subjects.find((x) => x.id === subjectId);
-        return subjectColors[s?.name?.toLowerCase()] || s?.color || '#8b5cf6';
+        return getSubjectColorById(subjectId);
     };
 
     /* ─── Action Button ─── */
@@ -191,7 +188,7 @@ export default function BacklogsPage() {
                                             variant="outline"
                                             className="mono text-[8px] px-1.5 py-0 border-white/8 text-zinc-600"
                                         >
-                                            {task.category?.replace('_', ' ')}
+                                            {task.category?.replaceAll('_', ' ')}
                                         </Badge>
                                     </div>
                                 </div>

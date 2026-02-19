@@ -288,6 +288,12 @@ export default function PrintModal({ open, onClose }) {
         printWindow.document.close();
         setTimeout(() => {
             printWindow.print();
+            // L2-FIX: Close the print window after the user finishes/cancels the print dialog
+            printWindow.onafterprint = () => printWindow.close();
+            // Fallback: close after 60s in case onafterprint doesn't fire in some browsers
+            setTimeout(() => {
+                try { if (!printWindow.closed) printWindow.close(); } catch (e) { /* already closed */ }
+            }, 60000);
         }, 500);
     };
 
@@ -391,7 +397,7 @@ export default function PrintModal({ open, onClose }) {
                                                     <div className="task-meta">
                                                         <span className="priority-dot" style={{ background: priorityDot[task.priority] || '#facc15' }} />
                                                         <span>{task.priority}</span>
-                                                        <span className="category-badge">{task.category?.replace('_', ' ')}</span>
+                                                        <span className="category-badge">{task.category?.replaceAll('_', ' ')}</span>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -453,7 +459,7 @@ export default function PrintModal({ open, onClose }) {
                                                 <span className={`font-medium ${task.status === 'done' ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>{task.title}</span>
                                                 <div className="flex items-center gap-1 mt-0.5">
                                                     <div className="w-1 h-1 rounded-full" style={{ background: priorityDot[task.priority] || '#facc15' }} />
-                                                    <span className="text-[8px] mono text-zinc-600">{task.category?.replace('_', ' ')}</span>
+                                                    <span className="text-[8px] mono text-zinc-600">{task.category?.replaceAll('_', ' ')}</span>
                                                 </div>
                                             </td>
                                             <td className="py-1.5 px-2">
@@ -464,7 +470,7 @@ export default function PrintModal({ open, onClose }) {
                                             </td>
                                             <td className="py-1.5 px-2">
                                                 <Badge variant="outline" className="mono text-[8px] border-white/8 px-1.5 py-0" style={{ color: sc.color }}>
-                                                    {task.status?.replace('_', ' ').toUpperCase()}
+                                                    {task.status?.replaceAll('_', ' ').toUpperCase()}
                                                 </Badge>
                                             </td>
                                         </tr>

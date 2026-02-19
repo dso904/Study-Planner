@@ -1,22 +1,25 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, useTaskActions, useWeekNavigation, SCHEDULE } from '@/lib/atoms';
+import { tasksAtom, useTaskActions, useWeekNavigation, SCHEDULE, SUBJECT_COLOR_MAP } from '@/lib/atoms';
 import { getWeekDays, getTimeSlots, getWeekRangeLabel, isCurrentWeek, getCurrentTimePosition, formatTime, dayjs } from '@/lib/dates';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, CalendarDays, Plus, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import TaskModal from '@/components/tasks/task-modal';
 
-const subjectColorMap = {
-  physics: { bg: 'rgba(250,204,21,0.55)', border: '#facc15' },
-  chemistry: { bg: 'rgba(244,114,182,0.55)', border: '#f472b6' },
-  maths: { bg: 'rgba(239,68,68,0.55)', border: '#ef4444' },
-  biology: { bg: 'rgba(52,211,153,0.55)', border: '#34d399' },
-  english: { bg: 'rgba(96,165,250,0.55)', border: '#60a5fa' },
-  default: { bg: 'rgba(139,92,246,0.55)', border: '#8b5cf6' },
+// I1-FIX: Derive subjectColorMap from centralized SUBJECT_COLOR_MAP
+const hexToRgba = (hex, alpha) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
 };
+const subjectColorMap = Object.fromEntries(
+  Object.entries(SUBJECT_COLOR_MAP).map(([id, hex]) => [id, { bg: hexToRgba(hex, 0.55), border: hex }])
+);
+subjectColorMap.default = { bg: 'rgba(139,92,246,0.55)', border: '#8b5cf6' };
 
 function getTaskColor(subjectId = '') {
   return subjectColorMap[subjectId] || subjectColorMap.default;
@@ -314,7 +317,8 @@ export default function WeeklyPlannerPage() {
           {weekDays.map((day, dayIndex) => {
             const dayTasks = tasksByDate.get(day.date) || [];
             if (dayTasks.length === 0) return null;
-            return dayTasks.map((task) => {
+            // M9-FIX: Wrap in Fragment with key to avoid React reconciliation issues
+            return (<React.Fragment key={day.date}>{dayTasks.map((task) => {
               const pos = getTaskPosition(task, dayIndex);
               // Each day column is (100% - TIME_COL_WIDTH) / 7 wide
               const colWidthPercent = `calc((100% - ${TIME_COL_WIDTH}px) / 7)`;
@@ -338,7 +342,7 @@ export default function WeeklyPlannerPage() {
                   onClick={(e) => handleTaskClick(e, task)}
                 />
               );
-            });
+            })}</React.Fragment>);
           })}
 
           {/* Today column electric border overlay */}

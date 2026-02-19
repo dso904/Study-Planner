@@ -30,7 +30,7 @@ export function getWeekDays(weekStartDate) {
 /**
  * Generate time slot labels for the grid.
  */
-export function getTimeSlots(startHour = 6, endHour = 23, slotMinutes = 60) {
+export function getTimeSlots(startHour = 6, endHour = 24, slotMinutes = 60) {
     const slots = [];
     for (let h = startHour; h < endHour; h++) {
         if (slotMinutes === 30) {
@@ -56,7 +56,11 @@ export function getTimeSlots(startHour = 6, endHour = 23, slotMinutes = 60) {
  * Format a time string (HH:mm) to display format.
  */
 export function formatTime(time) {
-    return dayjs(time, 'HH:mm').format('h:mm A');
+    // M3-FIX: Guard against empty/null/undefined input
+    if (!time) return '—';
+    const parsed = dayjs(time, 'HH:mm');
+    if (!parsed.isValid()) return '—';
+    return parsed.format('h:mm A');
 }
 
 /**
@@ -86,7 +90,7 @@ export function isCurrentWeek(weekStartDate) {
  * Calculate how far through the current day we are (for the time indicator line).
  * Returns a percentage 0–100.
  */
-export function getCurrentTimePosition(startHour = 6, endHour = 23) {
+export function getCurrentTimePosition(startHour = 6, endHour = 24) {
     const now = dayjs();
     const currentMinutes = now.hour() * 60 + now.minute();
     const dayStartMinutes = startHour * 60;

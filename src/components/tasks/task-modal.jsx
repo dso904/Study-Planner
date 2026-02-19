@@ -277,6 +277,15 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
             return;
         }
 
+        // M4-FIX: Validate end_time is after start_time
+        if (form.start_time && form.end_time && form.end_time <= form.start_time) {
+            toast.error('Invalid time range', {
+                description: 'End time must be after start time',
+                duration: 4000,
+            });
+            return;
+        }
+
         if (isEditing) {
             updateTask(task.id, { ...form });
         } else {
@@ -301,7 +310,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         <span className="neon-text font-extrabold text-lg">{isEditing ? 'EDIT TASK' : 'NEW TASK'}</span>
                         {isEditing && (
                             <Badge variant="outline" className="mono text-[10px] tracking-wider border-white/10" style={{ color: statusColor }}>
-                                {form.status.toUpperCase().replace('_', ' ')}
+                                {form.status.toUpperCase().replaceAll('_', ' ')}
                             </Badge>
                         )}
                     </DialogTitle>

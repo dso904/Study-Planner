@@ -870,4 +870,783 @@
 
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   TIMER WIDGET — Floating Timer/Stopwatch
+   ═══════════════════════════════════════════════════════════════ */
+
+.timer-widget {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  border-radius: 16px;
+  overflow: hidden;
+  background: oklch(0.25 0.03 260 / 99%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow:
+    0 24px 64px -12px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(34, 211, 238, 0.3),
+    0 0 48px rgba(34, 211, 238, 0.2);
+  transition: box-shadow 0.3s ease, height 0.3s ease;
+}
+
+.timer-widget:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 32px rgba(34, 211, 238, 0.12);
+}
+
+.timer-widget.dragging {
+  cursor: grabbing;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 211, 238, 0.2);
+  transform: scale(1.02);
+}
+
+.timer-widget.minimized {
+  height: 56px !important;
+}
+
+.timer-widget-drag-handle {
+  cursor: grab;
+  user-select: none;
+}
+
+/* ─── Timer Widget Header ─── */
+.timer-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.timer-widget-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timer-widget-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.timer-widget-modes {
+  display: flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.timer-mode-btn {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #71717a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timer-mode-btn:hover {
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.timer-mode-btn.active {
+  background: color-mix(in srgb, var(--mode-color, #22d3ee) 20%, transparent);
+  color: var(--mode-color, #22d3ee);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--mode-color, #22d3ee) 15%, transparent);
+}
+
+.timer-widget-mini-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.timer-widget-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timer-running-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22d3ee;
+  animation: timerPulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+}
+
+@keyframes timerPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+}
+
+.timer-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.04);
+  color: #71717a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.timer-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d4d4d8;
+}
+
+.timer-action-btn.close:hover {
+  background: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+}
+
+.timer-widget-mini-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+}
+
+.timer-mini-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #71717a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.timer-mini-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d4d4d8;
+}
+
+.timer-mini-btn.running {
+  background: color-mix(in srgb, var(--mini-color, #22d3ee) 20%, transparent);
+  border-color: color-mix(in srgb, var(--mini-color, #22d3ee) 30%, transparent);
+  color: var(--mini-color, #22d3ee);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--mini-color, #22d3ee) 20%, transparent);
+}
+
+/* ─── Timer Widget Body ─── */
+.timer-widget-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.timer-display-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+/* ─── Circular Progress Ring ─── */
+.timer-ring-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.timer-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+}
+
+.timer-ring-bg {
+  transition: stroke 0.3s ease;
+}
+
+.timer-ring-progress {
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.timer-ring-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-display-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.timer-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 800;
+  color: #f4f4f5;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.timer-hours {
+  font-size: 24px;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+
+.timer-separator {
+  opacity: 0.5;
+}
+
+.timer-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.timer-percentage {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a1a1aa;
+}
+
+.timer-remaining,
+.timer-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ─── Stopwatch Laps ─── */
+.stopwatch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.laps-container {
+  width: 100%;
+  max-height: 120px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.laps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.laps-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #52525b;
+}
+
+.laps-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #22d3ee;
+  background: rgba(34, 211, 238, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.laps-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.laps-empty {
+  text-align: center;
+  padding: 12px;
+  font-size: 11px;
+  color: #52525b;
+}
+
+.lap-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 2px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.15s ease;
+}
+
+.lap-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.lap-item.lap-best {
+  background: rgba(34, 211, 153, 0.08);
+}
+
+.lap-item.lap-best .lap-time {
+  color: #34d399;
+}
+
+.lap-item.lap-worst {
+  background: rgba(244, 63, 94, 0.06);
+}
+
+.lap-item.lap-worst .lap-time {
+  color: #f43f5e;
+}
+
+.lap-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #71717a;
+}
+
+.lap-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #d4d4d8;
+}
+
+/* ─── Timer Presets ─── */
+.timer-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.timer-preset-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #a1a1aa;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timer-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #d4d4d8;
+}
+
+.timer-preset-btn.active {
+  background: color-mix(in srgb, var(--preset-color, #22d3ee) 15%, transparent);
+  border-color: color-mix(in srgb, var(--preset-color, #22d3ee) 30%, transparent);
+  color: var(--preset-color, #22d3ee);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--preset-color, #22d3ee) 12%, transparent);
+}
+
+/* ─── Custom Timer Input ─── */
+.timer-custom-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(251, 146, 60, 0.2);
+}
+
+.timer-custom-input input {
+  width: 60px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f4f4f5;
+  text-align: center;
+  outline: none;
+}
+
+.timer-custom-input input:focus {
+  border-color: rgba(251, 146, 60, 0.4);
+  box-shadow: 0 0 12px rgba(251, 146, 60, 0.15);
+}
+
+.timer-custom-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #71717a;
+}
+
+.timer-custom-set {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.timer-custom-set:hover {
+  background: rgba(251, 146, 60, 0.25);
+  box-shadow: 0 0 12px rgba(251, 146, 60, 0.2);
+}
+
+/* ─── Timer Controls ─── */
+.timer-widget-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.timer-ctrl-btn {
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.timer-ctrl-btn.primary {
+  width: 56px;
+  height: 56px;
+  background: color-mix(in srgb, var(--ctrl-color, #22d3ee) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
+  color: var(--ctrl-color, #22d3ee);
+}
+
+.timer-ctrl-btn.primary:hover {
+  background: color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
+  border-color: color-mix(in srgb, var(--ctrl-color, #22d3ee) 40%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--ctrl-color, #22d3ee) 20%, transparent);
+  transform: scale(1.05);
+}
+
+.timer-ctrl-btn.primary.running {
+  background: color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
+  animation: controlPulse 2s ease-in-out infinite;
+}
+
+@keyframes controlPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 24px color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 32px color-mix(in srgb, var(--ctrl-color, #22d3ee) 35%, transparent);
+  }
+}
+
+.timer-ctrl-btn.secondary {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #71717a;
+}
+
+.timer-ctrl-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #d4d4d8;
+}
+
+.timer-ctrl-btn.secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.timer-ctrl-btn.secondary.clear {
+  width: auto;
+  padding: 0 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ─── Task Linker ─── */
+.timer-task-linker {
+  width: 100%;
+  padding: 0 4px;
+}
+
+.task-linker {
+  position: relative;
+  width: 100%;
+}
+
+.task-linker-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.task-linker-trigger:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.task-linker-placeholder {
+  font-size: 12px;
+  color: #71717a;
+}
+
+.task-linker-chevron {
+  color: #52525b;
+  transition: transform 0.2s ease;
+}
+
+.task-linker-chevron.open {
+  transform: rotate(180deg);
+}
+
+.task-linker-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  border-radius: 12px;
+  background: oklch(0.11 0.012 280 / 98%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.task-linker-search {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.task-linker-search input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #f4f4f5;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.task-linker-search input:focus {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.1);
+}
+
+.task-linker-search input::placeholder {
+  color: #52525b;
+}
+
+.task-linker-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.task-linker-empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 11px;
+  color: #52525b;
+}
+
+.task-linker-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.task-linker-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.task-linker-item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-linker-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-linker-item-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4d4d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-linker-item-meta {
+  display: block;
+  font-size: 10px;
+  color: #52525b;
+  margin-top: 2px;
+}
+
+/* ─── Linked Task Display ─── */
+.task-linker-linked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  background: rgba(34, 211, 238, 0.06);
+}
+
+.task-linker-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-linker-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.task-linker-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-linker-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4d4d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-linker-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #71717a;
+  margin-top: 2px;
+}
+
+.task-linker-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #22d3ee;
+}
+
+.task-linker-unlink {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(244, 63, 94, 0.1);
+  color: #f43f5e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.task-linker-unlink:hover {
+  background: rgba(244, 63, 94, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   END TIMER WIDGET
+   ═══════════════════════════════════════════════════════════════ */
+
 /* Force Rebuild */
