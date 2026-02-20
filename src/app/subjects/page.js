@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Check, ChevronDown } from 'lucide-react';
+import PageTransition from '@/components/layout/page-transition';
 
 const chapterStatuses = [
     { value: 'not_started', label: 'Not Started', emoji: '⏸️', color: '#64748b', bg: '#64748b15' },
@@ -213,7 +214,7 @@ function SubjectQuadrant({ subject }) {
                             return (
                                 <div
                                     key={ch.id}
-                                    className="flex items-center justify-between py-2 px-3 rounded-lg transition-all duration-200 group/ch hover:scale-[1.01]"
+                                    className="flex items-center justify-between py-2 px-3 rounded-lg transition-all duration-200 group/ch hover:-translate-y-px"
                                     style={{
                                         background: `${subject.color}${Math.round(shadeOpacity * 255).toString(16).padStart(2, '0')}`,
                                         border: `1px solid ${subject.color}${Math.round(borderOpacity * 255).toString(16).padStart(2, '0')}`,
@@ -251,7 +252,7 @@ function SubjectQuadrant({ subject }) {
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full h-8 text-[10px] font-bold mono tracking-widest border border-dashed rounded-lg hover:scale-[1.01] transition-transform"
+                    className="w-full h-8 text-[10px] font-bold mono tracking-widest border border-dashed rounded-lg hover:scale-[1.04] transition-transform"
                     style={{ color: subject.color, borderColor: `${subject.color}25` }}
                     onClick={() => setChapterModalOpen(true)}
                 >
@@ -309,33 +310,35 @@ export default function SubjectsPage() {
     const english = SUBJECTS.find((s) => s.id === 'english');
 
     return (
-        <div className="space-y-3">
-            {/* 2×2 grid for Physics, Chemistry, Maths, Biology — fills viewport */}
-            <div className="grid grid-cols-2 grid-rows-2 gap-3" style={{ height: 'calc(100vh - var(--topbar-h) - 3.5rem)' }}>
-                {coreSubjects.map((subject, i) => (
+        <PageTransition>
+            <div className="space-y-3">
+                {/* 2×2 grid for Physics, Chemistry, Maths, Biology — fills viewport */}
+                <div className="grid grid-cols-2 grid-rows-2 gap-3" style={{ height: 'calc(100vh - var(--topbar-h) - 3.5rem)' }}>
+                    {coreSubjects.map((subject, i) => (
+                        <motion.div
+                            key={subject.id}
+                            initial={{ opacity: 0, scale: 0.96 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.35, delay: i * 0.08 }}
+                        >
+                            <SubjectQuadrant subject={subject} />
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* English — full-width block below, scroll to see */}
+                {english && (
                     <motion.div
-                        key={subject.id}
                         initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.35, delay: i * 0.08 }}
+                        transition={{ duration: 0.35, delay: 0.32 }}
+                        style={{ height: '280px' }}
                     >
-                        <SubjectQuadrant subject={subject} />
+                        <SubjectQuadrant subject={english} />
                     </motion.div>
-                ))}
+                )}
             </div>
-
-            {/* English — full-width block below, scroll to see */}
-            {english && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.35, delay: 0.32 }}
-                    style={{ height: '280px' }}
-                >
-                    <SubjectQuadrant subject={english} />
-                </motion.div>
-            )}
-        </div>
+        </PageTransition>
     );
 }
 

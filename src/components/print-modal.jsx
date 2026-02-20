@@ -12,11 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Printer, CalendarDays, CheckCircle, Clock, AlertCircle, SkipForward, CircleDot } from 'lucide-react';
 
 const statusConfig = {
-    done: { label: '✅ Done', color: '#34d399', icon: CheckCircle },
-    in_progress: { label: '🔄 In Progress', color: '#22d3ee', icon: Clock },
-    pending: { label: '⏳ Pending', color: '#fb923c', icon: AlertCircle },
+    done: { label: '✅ Completed', color: '#34d399', icon: CheckCircle },
     skipped: { label: '⏭️ Skipped', color: '#64748b', icon: SkipForward },
-    missed: { label: '🔴 Missed', color: '#f43f5e', icon: CircleDot },
 };
 
 const priorityDot = {
@@ -380,7 +377,7 @@ export default function PrintModal({ open, onClose }) {
                                 </thead>
                                 <tbody>
                                     {dayTasks.map((task) => {
-                                        const sc = statusConfig[task.status] || statusConfig.pending;
+                                        const sc = statusConfig[task.status] || { label: '⏳ Upcoming', color: '#fb923c', icon: Clock };
                                         const subColor = getSubjectColor(task.subject_id);
                                         const subName = getSubjectName(task.subject_id) || task.subject_name || '—';
                                         return (
@@ -442,7 +439,7 @@ export default function PrintModal({ open, onClose }) {
                             </thead>
                             <tbody>
                                 {dayTasks.map((task) => {
-                                    const sc = statusConfig[task.status] || statusConfig.pending;
+                                    const sc = statusConfig[task.status] || { label: '⏳ Upcoming', color: '#fb923c', icon: Clock };
                                     const subColor = getSubjectColor(task.subject_id);
                                     const subName = getSubjectName(task.subject_id) || task.subject_name || '—';
                                     return (

@@ -6,8 +6,9 @@ import { tasksAtom, useTaskActions, useWeekNavigation, SCHEDULE, SUBJECT_COLOR_M
 import { getWeekDays, getTimeSlots, getWeekRangeLabel, isCurrentWeek, getCurrentTimePosition, formatTime, dayjs } from '@/lib/dates';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, CalendarDays, Plus, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays, Plus, ChevronDown } from 'lucide-react';
 import TaskModal from '@/components/tasks/task-modal';
+import PageTransition from '@/components/layout/page-transition';
 
 // I1-FIX: Derive subjectColorMap from centralized SUBJECT_COLOR_MAP
 const hexToRgba = (hex, alpha) => {
@@ -17,25 +18,29 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r},${g},${b},${alpha})`;
 };
 const subjectColorMap = Object.fromEntries(
-  Object.entries(SUBJECT_COLOR_MAP).map(([id, hex]) => [id, { bg: hexToRgba(hex, 0.55), border: hex }])
+  Object.entries(SUBJECT_COLOR_MAP).map(([id, hex]) => [id, {
+    bg: `linear-gradient(135deg, ${hexToRgba(hex, 0.18)} 0%, ${hexToRgba(hex, 0.06)} 100%)`,
+    border: hex,
+    glow: hexToRgba(hex, 0.15),
+  }])
 );
-subjectColorMap.default = { bg: 'rgba(139,92,246,0.55)', border: '#8b5cf6' };
+subjectColorMap.default = {
+  bg: `linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(139,92,246,0.06) 100%)`,
+  border: '#8b5cf6',
+  glow: 'rgba(139,92,246,0.15)',
+};
 
 function getTaskColor(subjectId = '') {
   return subjectColorMap[subjectId] || subjectColorMap.default;
 }
 
-/* ─── Status & Priority data ─── */
+/* ─── Status data (simplified: Completed + Skipped) ─── */
 const statuses = [
-  { value: 'pending', label: 'Pending', emoji: '⏳', color: '#fb923c' },
-  { value: 'in_progress', label: 'In Progress', emoji: '🔄', color: '#22d3ee' },
-  { value: 'done', label: 'Done', emoji: '✅', color: '#34d399' },
+  { value: 'done', label: 'Completed', emoji: '✅', color: '#34d399' },
   { value: 'skipped', label: 'Skipped', emoji: '⏭️', color: '#64748b' },
-  { value: 'missed', label: 'Missed', emoji: '🔴', color: '#f43f5e' },
 ];
 
 const priorities = [
-  { value: 'critical', label: 'Critical', emoji: '🔴', color: '#f43f5e' },
   { value: 'high', label: 'High', emoji: '🟠', color: '#fb923c' },
   { value: 'medium', label: 'Medium', emoji: '🟡', color: '#facc15' },
   { value: 'low', label: 'Low', emoji: '🟢', color: '#34d399' },
@@ -66,29 +71,78 @@ function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTa
       style={{
         ...style,
         background: color.bg,
+        borderLeft: `3px solid ${color.border}`,
+        border: `1px solid ${hexToRgba(color.border, 0.25)}`,
+        borderLeftWidth: '3px',
         borderLeftColor: color.border,
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        boxShadow: `0 0 20px ${color.glow}, inset 0 1px 0 ${hexToRgba(color.border, 0.12)}`,
       }}
       onClick={onClick}
     >
+      {/* Priority ribbon flag — top-right corner (uniform color) */}
+      {task.priority && (() => {
+        const initial = task.priority[0].toUpperCase();
+        return (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '28px',
+            height: '28px',
+            overflow: 'hidden',
+            borderRadius: '0 8px 0 0',
+            zIndex: 2,
+          }}>
+            {/* Triangle flag — uniform dark with white accent */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: 0,
+              height: 0,
+              borderStyle: 'solid',
+              borderWidth: '0 28px 28px 0',
+              borderColor: 'transparent rgba(255,255,255,0.85) transparent transparent',
+              filter: 'drop-shadow(-1px 1px 3px rgba(0,0,0,0.5))',
+            }} />
+            {/* Letter label */}
+            <span style={{
+              position: 'absolute',
+              top: '2px',
+              right: '3px',
+              fontSize: '10px',
+              fontWeight: 800,
+              color: '#0f0e2a',
+              zIndex: 3,
+              lineHeight: 1,
+              fontFamily: 'monospace',
+            }}>
+              {initial}
+            </span>
+          </div>
+        );
+      })()}
       {/* Main content — hides when panel is open */}
       <div className="task-block-content">
-        <div className="task-block-title" style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.4)' }}>{task.title}</div>
-        <div className="task-block-time" style={{ color: 'rgba(255,255,255,0.8)' }}>{formatTime(task.start_time)}–{formatTime(task.end_time)}</div>
+        <div className="task-block-title" style={{ color: '#fff', fontWeight: 700, textShadow: '0 0 8px rgba(255,255,255,0.3), 0 1px 4px rgba(0,0,0,0.6)' }}>{task.title}</div>
+        <div className="task-block-time" style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, textShadow: '0 0 6px rgba(139,92,246,0.3)' }}>{formatTime(task.start_time)}–{formatTime(task.end_time)}</div>
         <div className="task-block-category" style={{ color: 'rgba(255,255,255,0.65)' }}>{task.category}</div>
       </div>
 
-      {/* Side panel toggle tab */}
+      {/* Bottom expand toggle */}
       <button
         type="button"
-        className={`task-side-tab ${isExpanded ? 'is-open' : ''}`}
+        className={`task-bottom-tab ${isExpanded ? 'is-open' : ''}`}
         title="Task options"
         onClick={handlePanelClick}
       >
-        <ChevronRightIcon size={11} strokeWidth={2.5} />
+        <ChevronDown size={11} strokeWidth={2.5} />
       </button>
 
-      {/* Collapsible side panel — overlays from right */}
-      <div className={`task-side-panel ${isExpanded ? 'is-open' : ''}`} onClick={(e) => e.stopPropagation()}>
+      {/* Collapsible bottom panel — slides up from bottom */}
+      <div className={`task-bottom-panel ${isExpanded ? 'is-open' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Status row */}
         <div className="panel-row">
           <div className="panel-section-label">STATUS</div>
@@ -155,7 +209,7 @@ function TimeSlotCell({ isToday, onClick }) {
 }
 
 /* ─── Constants ─── */
-const SLOT_HEIGHT = 80; // increased from 54 for taller rows
+const SLOT_HEIGHT = 120; // matches .time-slot-cell min-height
 const HEADER_HEIGHT = 58; // approximate height of the header row
 const TIME_COL_WIDTH = 70; // width of the time label column
 
@@ -214,16 +268,21 @@ export default function WeeklyPlannerPage() {
     updateTask(id, updates);
   }, [updateTask]);
 
-  // Close panel when clicking outside
+  // Close panel on ANY click anywhere — capture phase intercepts BEFORE other handlers
   useEffect(() => {
     if (!expandedTaskId) return;
     const handler = (e) => {
-      if (!e.target.closest('.task-block-abs')) {
-        setExpandedTaskId(null);
-      }
+      // If clicking the toggle button or inside the dropdown panel, let it work normally
+      if (e.target.closest('.task-bottom-tab') || e.target.closest('.task-bottom-panel')) return;
+      // Close the panel
+      setExpandedTaskId(null);
+      // Prevent the click from triggering anything else (add task, edit task, etc.)
+      e.stopPropagation();
+      e.preventDefault();
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    // Use capture phase so this runs BEFORE any other handlers
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
   }, [expandedTaskId]);
 
   const isThisWeek = isCurrentWeek(currentWeekStart);
@@ -248,7 +307,7 @@ export default function WeeklyPlannerPage() {
   };
 
   return (
-    <>
+    <PageTransition>
       {/* Top bar */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
@@ -382,6 +441,6 @@ export default function WeeklyPlannerPage() {
         defaultDate={selectedSlot?.date}
         defaultTime={selectedSlot?.time}
       />
-    </>
+    </PageTransition>
   );
 }

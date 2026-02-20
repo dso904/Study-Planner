@@ -40,17 +40,17 @@ function TimeSpinner({ value, onChange, label }) {
 
     return (
         <div>
-            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">{label}</Label>
+            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">{label}</Label>
             <div className="flex items-center gap-1 mt-1 rounded-md px-2 py-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 {/* Hours */}
                 <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'hour')}>
-                    <button type="button" onClick={incHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                    <button type="button" onClick={incHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
                     <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
                         {String(hours).padStart(2, '0')}
                     </span>
-                    <button type="button" onClick={decHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                    <button type="button" onClick={decHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronDown size={14} />
                     </button>
                 </div>
@@ -59,13 +59,13 @@ function TimeSpinner({ value, onChange, label }) {
 
                 {/* Minutes */}
                 <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'minute')}>
-                    <button type="button" onClick={incMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                    <button type="button" onClick={incMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
                     <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
                         {String(minutes).padStart(2, '0')}
                     </span>
-                    <button type="button" onClick={decMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-0.5">
+                    <button type="button" onClick={decMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronDown size={14} />
                     </button>
                 </div>
@@ -93,18 +93,14 @@ const categories = [
 ];
 
 const priorities = [
-    { value: 'critical', label: 'Critical', emoji: '🔴', color: '#f43f5e' },
     { value: 'high', label: 'High', emoji: '🟠', color: '#fb923c' },
     { value: 'medium', label: 'Medium', emoji: '🟡', color: '#facc15' },
     { value: 'low', label: 'Low', emoji: '🟢', color: '#34d399' },
 ];
 
 const statuses = [
-    { value: 'pending', label: 'Pending', emoji: '⏳', color: '#fb923c' },
-    { value: 'in_progress', label: 'In Progress', emoji: '🔄', color: '#22d3ee' },
-    { value: 'done', label: 'Done', emoji: '✅', color: '#34d399' },
+    { value: 'done', label: 'Completed', emoji: '✅', color: '#34d399' },
     { value: 'skipped', label: 'Skipped', emoji: '⏭️', color: '#64748b' },
-    { value: 'missed', label: 'Missed', emoji: '🔴', color: '#f43f5e' },
 ];
 
 /* ─── Reusable Modular Dropdown ─── */
@@ -204,7 +200,7 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
 
 const initialForm = {
     title: '', subject_id: '', subject_name: '', chapter_id: '',
-    category: 'lecture', priority: 'medium', status: 'pending',
+    category: 'lecture', priority: 'medium', status: '',
     date: '', start_time: '', end_time: '', notes: '',
 };
 
@@ -317,79 +313,88 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                 </DialogHeader>
 
                 <div className="space-y-4 overflow-visible">
-                    {/* Title */}
-                    <div>
-                        <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Task</Label>
-                        <Input
-                            placeholder="e.g., Kinematics — HCV Ch.4"
-                            value={form.title}
-                            onChange={(e) => updateField('title', e.target.value)}
-                            autoFocus
-                            className="bg-white/5 border-white/10 focus:border-rose-500/40 mt-1"
-                        />
-                    </div>
-
-                    {/* Date + Times */}
-                    <div className="grid grid-cols-3 gap-3">
+                    {/* ─── Section 1: Task Info ─── */}
+                    <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3.5 space-y-3">
+                        <p className="mono text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-300 flex items-center gap-1.5">
+                            <span>📋</span> Task Info
+                        </p>
+                        {/* Title */}
                         <div>
-                            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Date</Label>
-                            <Input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className="bg-white/5 border-white/10 mt-1" />
-                        </div>
-                        <TimeSpinner label="Start" value={form.start_time} onChange={(v) => updateField('start_time', v)} />
-                        <TimeSpinner label="End" value={form.end_time} onChange={(v) => updateField('end_time', v)} />
-                    </div>
-
-                    {/* Subject + Chapter */}
-                    <div className={`grid gap-3 ${form.subject_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        <div>
-                            <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Subject</Label>
-                            <ModularSelect
-                                value={form.subject_id}
-                                onChange={handleSubjectChange}
-                                options={subjectOptions}
-                                placeholder="Select subject"
-                                label="SUBJECTS"
-                                accentColor="#8b5cf6"
+                            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Task</Label>
+                            <Input
+                                placeholder="e.g., Kinematics — HCV Ch.4"
+                                value={form.title}
+                                onChange={(e) => updateField('title', e.target.value)}
+                                autoFocus
+                                className="bg-white/5 border-white/10 focus:border-rose-500/40 mt-1"
                             />
                         </div>
-                        {form.subject_id && chapterOptions.length > 1 && (
+                        {/* Subject + Chapter */}
+                        <div className={`grid gap-3 ${form.subject_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <div>
-                                <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Chapter</Label>
+                                <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Subject</Label>
                                 <ModularSelect
-                                    value={form.chapter_id}
-                                    onChange={(v) => updateField('chapter_id', v)}
-                                    options={chapterOptions}
-                                    placeholder="Select chapter"
-                                    label="CHAPTERS"
-                                    accentColor={subjects.find((s) => s.id === form.subject_id)?.color || '#8b5cf6'}
+                                    value={form.subject_id}
+                                    onChange={handleSubjectChange}
+                                    options={subjectOptions}
+                                    placeholder="Select subject"
+                                    label="SUBJECTS"
+                                    accentColor="#8b5cf6"
                                 />
                             </div>
-                        )}
+                            {form.subject_id && chapterOptions.length > 1 && (
+                                <div>
+                                    <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Chapter</Label>
+                                    <ModularSelect
+                                        value={form.chapter_id}
+                                        onChange={(v) => updateField('chapter_id', v)}
+                                        options={chapterOptions}
+                                        placeholder="Select chapter"
+                                        label="CHAPTERS"
+                                        accentColor={subjects.find((s) => s.id === form.subject_id)?.color || '#8b5cf6'}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        {/* Category */}
+                        <div>
+                            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Category</Label>
+                            <ModularSelect
+                                value={form.category}
+                                onChange={(v) => updateField('category', v)}
+                                options={categories}
+                                placeholder="Select category"
+                                label="CATEGORY"
+                                accentColor="#f472b6"
+                            />
+                        </div>
                     </div>
 
-                    {/* Category */}
-                    <div>
-                        <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Category</Label>
-                        <ModularSelect
-                            value={form.category}
-                            onChange={(v) => updateField('category', v)}
-                            options={categories}
-                            placeholder="Select category"
-                            label="CATEGORY"
-                            accentColor="#f472b6"
-                        />
-                    </div>
-
-                    {/* Notes */}
-                    <div>
-                        <Label className="text-zinc-500 mono text-[10px] uppercase tracking-wider">Notes</Label>
-                        <Textarea
-                            placeholder="Additional details..."
-                            value={form.notes}
-                            onChange={(e) => updateField('notes', e.target.value)}
-                            rows={2}
-                            className="bg-white/5 border-white/10 mt-1"
-                        />
+                    {/* ─── Section 2: Schedule & Details ─── */}
+                    <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3.5 space-y-3">
+                        <p className="mono text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-300 flex items-center gap-1.5">
+                            <span>🕐</span> Schedule & Details
+                        </p>
+                        {/* Date + Times */}
+                        <div className="grid grid-cols-3 gap-3">
+                            <div>
+                                <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Date</Label>
+                                <Input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className="bg-white/5 border-white/10 mt-1" />
+                            </div>
+                            <TimeSpinner label="Start" value={form.start_time} onChange={(v) => updateField('start_time', v)} />
+                            <TimeSpinner label="End" value={form.end_time} onChange={(v) => updateField('end_time', v)} />
+                        </div>
+                        {/* Notes */}
+                        <div>
+                            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Notes</Label>
+                            <Textarea
+                                placeholder="Additional details..."
+                                value={form.notes}
+                                onChange={(e) => updateField('notes', e.target.value)}
+                                rows={2}
+                                className="bg-white/5 border-white/10 mt-1"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -402,12 +407,12 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         )}
                     </div>
                     <div className="flex items-center gap-3">
-                        <button type="button" onClick={onClose} className="futuristic-btn futuristic-btn-ghost">
+                        <Button variant="ghost" onClick={onClose} className="text-zinc-400 hover:text-zinc-200">
                             Cancel
-                        </button>
-                        <button type="button" onClick={handleSave} disabled={!form.title.trim()} className="futuristic-btn">
+                        </Button>
+                        <Button onClick={handleSave} disabled={!form.title.trim()} className="font-bold tracking-wider text-white text-xs bg-violet-600 hover:bg-violet-500">
                             {isEditing ? 'Save' : 'Create'}
-                        </button>
+                        </Button>
                     </div>
                 </DialogFooter>
             </DialogContent>
