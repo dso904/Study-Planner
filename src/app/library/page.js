@@ -136,19 +136,18 @@ function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
                 marginTop: '-2px', borderRadius: '50%', filter: 'blur(2px)',
             }} />
 
-            {/* ── Floating Tooltip Card (appears above book on hover) ── */}
+            {/* ── Floating Tooltip Card (appears to the right of book) ── */}
             <AnimatePresence>
                 {hovered && (
                     <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.92 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.92 }}
+                        initial={{ opacity: 0, x: -6, scale: 0.92 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -6, scale: 0.92 }}
                         transition={{ duration: 0.18, ease: 'easeOut' }}
                         style={{
                             position: 'absolute',
-                            bottom: `calc(100% + 8px)`,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
+                            top: '0',
+                            left: `calc(100% + 12px)`,
                             minWidth: '200px',
                             maxWidth: '240px',
                             padding: '14px 16px',
@@ -162,12 +161,13 @@ function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Arrow */}
+                        {/* Arrow pointing left */}
                         <div style={{
-                            position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%) rotate(45deg)',
+                            position: 'absolute', top: '16px', left: '-6px',
+                            transform: 'rotate(45deg)',
                             width: '10px', height: '10px',
                             background: 'rgba(12,11,38,0.97)',
-                            borderRight: `1.5px solid ${spineColor}40`,
+                            borderLeft: `1.5px solid ${spineColor}40`,
                             borderBottom: `1.5px solid ${spineColor}40`,
                         }} />
 
@@ -757,7 +757,7 @@ export default function LibraryPage() {
                     padding: '20px 12px 24px',
                     minHeight: '400px',
                     position: 'relative',
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     boxShadow: `
                         inset 0 1px 0 rgba(255,255,255,0.04),
                         0 8px 32px rgba(0,0,0,0.3)
