@@ -84,12 +84,9 @@ const categories = [
     { value: 'theory', label: 'Theory', emoji: '📖', color: '#22d3ee' },
     { value: 'revision', label: 'Revision', emoji: '🔁', color: '#fb923c' },
     { value: 'practice', label: 'Practice', emoji: '✏️', color: '#34d399' },
-    { value: 'test', label: 'Test / Mock', emoji: '📝', color: '#f472b6' },
-    { value: 'assignment', label: 'Assignment', emoji: '📋', color: '#a78bfa' },
-    { value: 'self_study', label: 'Self-Study', emoji: '🧠', color: '#facc15' },
+    { value: 'test', label: 'Tests / Mock / Assignments', emoji: '📝', color: '#f472b6' },
     { value: 'school', label: 'School', emoji: '🏫', color: '#64748b' },
     { value: 'tuition', label: 'Tuition', emoji: '🎓', color: '#f43f5e' },
-    { value: 'other', label: 'Other', emoji: '⚡', color: '#94a3b8' },
 ];
 
 const priorities = [
@@ -366,8 +363,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                                 </div>
                             )}
                         </div>
-                        {/* Book from Library */}
-                        {form.subject_id && bookOptions.length > 1 && (
+                        {/* Book from Library — hidden for lecture, tuition, school, test */}
+                        {form.subject_id && bookOptions.length > 1 && !['lecture', 'tuition', 'school', 'test'].includes(form.category) && (
                             <div>
                                 <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">📕 Book (from Library)</Label>
                                 <ModularSelect

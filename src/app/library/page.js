@@ -26,46 +26,45 @@ function getSpineColor(subjectId, index) {
     return palette[index % palette.length];
 }
 
-/* ─── 3D Book Component — standing on shelf ─── */
+/* ─── Book Component — spine on shelf with hover tooltip card ─── */
 function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
     const spineColor = getSpineColor(book.subject_id, index);
     const [hovered, setHovered] = useState(false);
+    const subject = SUBJECTS.find(s => s.id === book.subject_id);
 
-    // Generate a deterministic "height" variation for visual interest
+    // Generate deterministic height/width variation for visual interest
     const heightVariation = 180 + ((book.title.length * 7 + index * 13) % 40);
     const widthVariation = 48 + ((book.title.length * 3 + index * 5) % 16);
 
     return (
         <motion.div
             className="book-on-shelf"
-            initial={{ opacity: 0, y: 30, rotateY: -40 }}
-            animate={{ opacity: 1, y: 0, rotateY: 0 }}
-            exit={{ opacity: 0, y: 20, scale: 0.8, rotateY: 30 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20, scale: 0.8 }}
             transition={{ duration: 0.45, delay: index * 0.06, ease: [0.23, 1.0, 0.32, 1.0] }}
             layout
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            style={{ perspective: '800px' }}
+            style={{ position: 'relative', zIndex: hovered ? 100 : 1 }}
         >
+            {/* ── The book spine ── */}
             <motion.div
-                className="book-3d-wrapper"
                 animate={{
-                    rotateY: hovered ? -25 : 0,
-                    translateZ: hovered ? 20 : 0,
-                    translateX: hovered ? 8 : 0,
+                    y: hovered ? -6 : 0,
+                    scale: hovered ? 1.04 : 1,
                 }}
-                transition={{ duration: 0.35, ease: [0.23, 1.0, 0.32, 1.0] }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
                 style={{
-                    transformStyle: 'preserve-3d',
                     width: `${widthVariation}px`,
                     height: `${heightVariation}px`,
                     cursor: 'pointer',
                     position: 'relative',
                 }}
+                onClick={() => onEdit(book)}
             >
-                {/* ── Book Spine (front-facing side) ── */}
+                {/* Book Spine face */}
                 <div
-                    className="book-spine-face"
                     style={{
                         width: '100%',
                         height: '100%',
@@ -78,58 +77,30 @@ function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
                         padding: '12px 6px',
                         position: 'relative',
                         overflow: 'hidden',
-                        boxShadow: `
-                            2px 2px 8px rgba(0,0,0,0.4),
-                            inset -2px 0 6px rgba(0,0,0,0.2),
-                            inset 2px 0 4px rgba(255,255,255,0.15)
-                        `,
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: hovered
+                            ? `3px 4px 16px rgba(0,0,0,0.5), inset -2px 0 6px rgba(0,0,0,0.2), inset 2px 0 4px rgba(255,255,255,0.15), 0 0 20px ${spineColor}25`
+                            : `2px 2px 8px rgba(0,0,0,0.4), inset -2px 0 6px rgba(0,0,0,0.2), inset 2px 0 4px rgba(255,255,255,0.15)`,
+                        border: `1px solid ${hovered ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)'}`,
+                        transition: 'box-shadow 0.2s, border-color 0.2s',
                     }}
-                    onClick={() => onEdit(book)}
                 >
                     {/* Top decorative band */}
                     <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: '4px',
-                        background: `linear-gradient(90deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05))`,
+                        position: 'absolute', top: 0, left: 0, right: 0, height: '4px',
+                        background: 'linear-gradient(90deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05))',
                         borderRadius: '3px 6px 0 0',
                     }} />
 
                     {/* Spine groove lines */}
-                    <div style={{
-                        position: 'absolute',
-                        top: '18px',
-                        left: '4px',
-                        right: '4px',
-                        height: '1px',
-                        background: 'rgba(0,0,0,0.2)',
-                    }} />
-                    <div style={{
-                        position: 'absolute',
-                        bottom: '18px',
-                        left: '4px',
-                        right: '4px',
-                        height: '1px',
-                        background: 'rgba(0,0,0,0.2)',
-                    }} />
+                    <div style={{ position: 'absolute', top: '18px', left: '4px', right: '4px', height: '1px', background: 'rgba(0,0,0,0.2)' }} />
+                    <div style={{ position: 'absolute', bottom: '18px', left: '4px', right: '4px', height: '1px', background: 'rgba(0,0,0,0.2)' }} />
 
-                    {/* Book title — vertically written */}
+                    {/* Book title — vertical */}
                     <div style={{
-                        writingMode: 'vertical-rl',
-                        textOrientation: 'mixed',
-                        transform: 'rotate(180deg)',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        color: 'rgba(0,0,0,0.75)',
-                        letterSpacing: '0.04em',
-                        textAlign: 'center',
-                        lineHeight: 1.3,
-                        maxHeight: `${heightVariation - 60}px`,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)',
+                        fontSize: '11px', fontWeight: 800, color: 'rgba(0,0,0,0.75)',
+                        letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.3,
+                        maxHeight: `${heightVariation - 60}px`, overflow: 'hidden',
                         textShadow: '0 1px 0 rgba(255,255,255,0.3)',
                     }}>
                         {book.title}
@@ -137,165 +108,146 @@ function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
 
                     {/* Bottom decorative band */}
                     <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: '4px',
-                        background: `linear-gradient(90deg, rgba(0,0,0,0.15), rgba(0,0,0,0.05))`,
+                        position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px',
+                        background: 'linear-gradient(90deg, rgba(0,0,0,0.15), rgba(0,0,0,0.05))',
                         borderRadius: '0 0 6px 3px',
                     }} />
                 </div>
 
-                {/* ── Book Cover (side visible on hover tilt) ── */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: '100%',
-                        width: '110px',
-                        height: '100%',
-                        background: `linear-gradient(135deg, ${spineColor}20 0%, ${spineColor}08 100%)`,
-                        border: `1px solid ${spineColor}30`,
-                        borderLeft: 'none',
-                        borderRadius: '0 8px 8px 0',
-                        transformOrigin: 'left center',
-                        transform: 'rotateY(90deg)',
-                        backfaceVisibility: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        padding: '14px 10px',
-                        gap: '6px',
-                        backdropFilter: 'blur(12px)',
-                        boxShadow: `inset 0 0 20px ${spineColor}08`,
-                    }}
-                >
-                    <p style={{
-                        fontSize: '12px',
-                        fontWeight: 800,
-                        color: '#fff',
-                        lineHeight: 1.3,
-                        textShadow: `0 0 10px ${spineColor}60`,
-                    }}>
-                        {book.title}
-                    </p>
-                    {book.author && (
-                        <p style={{
-                            fontSize: '9px',
-                            fontWeight: 600,
-                            color: 'rgba(255,255,255,0.6)',
-                            fontFamily: "'JetBrains Mono', monospace",
-                            letterSpacing: '0.06em',
-                        }}>
-                            ✍ {book.author}
-                        </p>
-                    )}
-                    {book.publisher && (
-                        <p style={{
-                            fontSize: '8px',
-                            fontWeight: 600,
-                            color: 'rgba(255,255,255,0.4)',
-                            fontFamily: "'JetBrains Mono', monospace",
-                            letterSpacing: '0.06em',
-                        }}>
-                            🏢 {book.publisher}
-                        </p>
-                    )}
-
-                    {/* Action buttons on cover */}
-                    <div style={{ marginTop: 'auto', display: 'flex', gap: '4px' }}>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onEdit(book); }}
-                            style={{
-                                padding: '4px 8px',
-                                borderRadius: '6px',
-                                background: 'rgba(255,255,255,0.08)',
-                                border: '1px solid rgba(255,255,255,0.12)',
-                                color: 'rgba(255,255,255,0.7)',
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                transition: 'all 0.15s',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = `${spineColor}30`;
-                                e.currentTarget.style.color = spineColor;
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                                e.currentTarget.style.color = 'rgba(255,255,255,0.7)';
-                            }}
-                        >
-                            <Pencil size={9} /> Edit
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onDelete(book.id); }}
-                            style={{
-                                padding: '4px 8px',
-                                borderRadius: '6px',
-                                background: 'rgba(244,63,94,0.08)',
-                                border: '1px solid rgba(244,63,94,0.15)',
-                                color: 'rgba(244,63,94,0.7)',
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                transition: 'all 0.15s',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(244,63,94,0.2)';
-                                e.currentTarget.style.color = '#f43f5e';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(244,63,94,0.08)';
-                                e.currentTarget.style.color = 'rgba(244,63,94,0.7)';
-                            }}
-                        >
-                            <Trash2 size={9} /> Remove
-                        </button>
-                    </div>
-                </div>
-
-                {/* ── Book edge shadow (depth illusion) ── */}
+                {/* Book edge (depth illusion) */}
                 <div style={{
-                    position: 'absolute',
-                    top: '2px',
-                    right: '-3px',
-                    width: '3px',
-                    height: 'calc(100% - 4px)',
-                    background: `linear-gradient(180deg, ${spineColor}80 0%, ${spineColor}40 100%)`,
-                    borderRadius: '0 2px 2px 0',
-                    boxShadow: `1px 0 4px rgba(0,0,0,0.3)`,
+                    position: 'absolute', top: '2px', right: '-3px', width: '3px', height: 'calc(100% - 4px)',
+                    background: `linear-gradient(180deg, ${spineColor}80, ${spineColor}40)`,
+                    borderRadius: '0 2px 2px 0', boxShadow: '1px 0 4px rgba(0,0,0,0.3)',
                 }} />
 
-                {/* ── Book bottom pages edge ── */}
+                {/* Book bottom pages edge */}
                 <div style={{
-                    position: 'absolute',
-                    bottom: '-2px',
-                    left: '3px',
-                    right: '0',
-                    height: '3px',
+                    position: 'absolute', bottom: '-2px', left: '3px', right: '0', height: '3px',
                     background: 'linear-gradient(90deg, #e8ddc8, #f5f0e6, #e8ddc8)',
-                    borderRadius: '0 0 2px 2px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                    borderRadius: '0 0 2px 2px', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                 }} />
             </motion.div>
 
             {/* ── Shadow beneath book ── */}
             <div style={{
-                width: `${widthVariation - 4}px`,
-                height: '8px',
+                width: `${widthVariation - 4}px`, height: '8px',
                 background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, transparent 70%)',
-                marginTop: '-2px',
-                borderRadius: '50%',
-                filter: 'blur(2px)',
+                marginTop: '-2px', borderRadius: '50%', filter: 'blur(2px)',
             }} />
+
+            {/* ── Floating Tooltip Card (appears above book on hover) ── */}
+            <AnimatePresence>
+                {hovered && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.92 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.92 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        style={{
+                            position: 'absolute',
+                            bottom: `calc(100% + 8px)`,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            minWidth: '200px',
+                            maxWidth: '240px',
+                            padding: '14px 16px',
+                            borderRadius: '14px',
+                            background: 'rgba(12,11,38,0.97)',
+                            border: `1.5px solid ${spineColor}40`,
+                            boxShadow: `0 12px 48px rgba(0,0,0,0.7), 0 0 30px ${spineColor}15, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                            backdropFilter: 'blur(20px)',
+                            pointerEvents: 'auto',
+                            zIndex: 200,
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Arrow */}
+                        <div style={{
+                            position: 'absolute', bottom: '-6px', left: '50%', transform: 'translateX(-50%) rotate(45deg)',
+                            width: '10px', height: '10px',
+                            background: 'rgba(12,11,38,0.97)',
+                            borderRight: `1.5px solid ${spineColor}40`,
+                            borderBottom: `1.5px solid ${spineColor}40`,
+                        }} />
+
+                        {/* Subject badge */}
+                        {subject && (
+                            <div style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                padding: '2px 8px', borderRadius: '6px', marginBottom: '8px',
+                                background: `${subject.color}15`, border: `1px solid ${subject.color}30`,
+                                fontSize: '9px', fontWeight: 700, color: subject.color,
+                                fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.08em',
+                            }}>
+                                {subject.emoji} {subject.name}
+                            </div>
+                        )}
+
+                        {/* Title */}
+                        <p style={{
+                            fontSize: '13px', fontWeight: 800, color: '#fff', lineHeight: 1.3,
+                            marginBottom: '6px', textShadow: `0 0 10px ${spineColor}40`,
+                        }}>
+                            {book.title}
+                        </p>
+
+                        {/* Author */}
+                        {book.author && (
+                            <p style={{
+                                fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.55)',
+                                fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.04em',
+                                marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px',
+                            }}>
+                                <User size={10} style={{ opacity: 0.6 }} /> {book.author}
+                            </p>
+                        )}
+
+                        {/* Publisher */}
+                        {book.publisher && (
+                            <p style={{
+                                fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.4)',
+                                fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.04em',
+                                marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px',
+                            }}>
+                                <Building2 size={10} style={{ opacity: 0.5 }} /> {book.publisher}
+                            </p>
+                        )}
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onEdit(book); }}
+                                style={{
+                                    flex: 1, padding: '6px 10px', borderRadius: '8px',
+                                    background: `${spineColor}15`, border: `1px solid ${spineColor}30`,
+                                    color: spineColor, fontSize: '10px', fontWeight: 700, cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                    transition: 'all 0.15s',
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = `${spineColor}30`; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = `${spineColor}15`; }}
+                            >
+                                <Pencil size={10} /> Edit
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onDelete(book.id); }}
+                                style={{
+                                    flex: 1, padding: '6px 10px', borderRadius: '8px',
+                                    background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.2)',
+                                    color: '#f87171', fontSize: '10px', fontWeight: 700, cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                                    transition: 'all 0.15s',
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,63,94,0.2)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(244,63,94,0.1)'; }}
+                            >
+                                <Trash2 size={10} /> Remove
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
