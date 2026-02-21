@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { SUBJECTS, chaptersAtom, useTaskActions } from '@/lib/atoms';
+import { SUBJECTS, chaptersAtom, booksAtom, useTaskActions } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -200,6 +200,7 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
 
 const initialForm = {
     title: '', subject_id: '', subject_name: '', chapter_id: '',
+    book_id: '',
     category: 'lecture', priority: 'medium', status: '',
     date: '', start_time: '', end_time: '', notes: '',
 };
@@ -207,6 +208,7 @@ const initialForm = {
 export default function TaskModal({ open, onClose, task, defaultDate, defaultTime }) {
     const subjects = SUBJECTS;
     const allChapters = useAtomValue(chaptersAtom) || [];
+    const allBooks = useAtomValue(booksAtom) || [];
     const { addTask, updateTask, deleteTask } = useTaskActions();
     const [form, setForm] = useState(initialForm);
     const [wasEditing, setWasEditing] = useState(false);
@@ -229,6 +231,19 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
         ];
     }, [allChapters, form.subject_id, subjects]);
 
+    const bookOptions = useMemo(() => {
+        if (!form.subject_id) return [];
+        const filtered = allBooks.filter((b) => b.subject_id === form.subject_id);
+        if (filtered.length === 0) return [];
+        const subj = subjects.find((s) => s.id === form.subject_id);
+        return [
+            { value: '', label: 'No book', emoji: '📂', color: '#64748b' },
+            ...filtered.map((b) => ({
+                value: b.id, label: b.title, emoji: '📕', color: subj?.color || '#8b5cf6',
+            })),
+        ];
+    }, [allBooks, form.subject_id, subjects]);
+
     useEffect(() => {
         if (!open) return; // Don't reset form when closing — prevents flash
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -236,7 +251,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
         if (task) {
             setForm({
                 title: task.title || '', subject_id: task.subject_id || '', subject_name: task.subject_name || '',
-                chapter_id: task.chapter_id || '', category: task.category || 'lecture', priority: task.priority || 'medium',
+                chapter_id: task.chapter_id || '', book_id: task.book_id || '',
+                category: task.category || 'lecture', priority: task.priority || 'medium',
                 status: task.status || 'pending', date: task.date || '', start_time: task.start_time || '',
                 end_time: task.end_time || '', notes: task.notes || '',
             });
@@ -253,7 +269,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
     const updateField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
     const handleSubjectChange = (id) => {
         const s = subjects.find((x) => x.id === id);
-        setForm((p) => ({ ...p, subject_id: id, subject_name: s?.name || '', chapter_id: '' }));
+        setForm((p) => ({ ...p, subject_id: id, subject_name: s?.name || '', chapter_id: '', book_id: '' }));
     };
 
     const handleSave = () => {
@@ -350,6 +366,20 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                                 </div>
                             )}
                         </div>
+                        {/* Book from Library */}
+                        {form.subject_id && bookOptions.length > 1 && (
+                            <div>
+                                <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">📕 Book (from Library)</Label>
+                                <ModularSelect
+                                    value={form.book_id}
+                                    onChange={(v) => updateField('book_id', v)}
+                                    options={bookOptions}
+                                    placeholder="Select a book"
+                                    label="BOOKS"
+                                    accentColor={subjects.find((s) => s.id === form.subject_id)?.color || '#8b5cf6'}
+                                />
+                            </div>
+                        )}
                         {/* Category */}
                         <div>
                             <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Category</Label>

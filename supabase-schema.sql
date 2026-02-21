@@ -125,3 +125,40 @@ END $$;
 
 -- ─── Migration: Add time_spent column (run if table exists) ───────────
 -- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS time_spent INT DEFAULT 0;
+
+-- ─── Books (Library) ─────────────────────────────
+CREATE TABLE IF NOT EXISTS books (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subject_id  TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    author      TEXT DEFAULT '',
+    publisher   TEXT DEFAULT '',
+    sort_order  INT DEFAULT 0,
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE books ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Require app secret" ON books;
+CREATE POLICY "Require app secret" ON books
+    FOR ALL USING (
+        current_setting('request.headers', true)::json->>'x-app-secret' = 'H6V$f%x@bN'
+    ) WITH CHECK (
+        current_setting('request.headers', true)::json->>'x-app-secret' = 'H6V$f%x@bN'
+    );
+
+CREATE INDEX IF NOT EXISTS idx_books_subject ON books(subject_id);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_updated_at_books') THEN
+        CREATE TRIGGER set_updated_at_books
+            BEFORE UPDATE ON books
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
+
+-- ─── Migration: Add book_id to tasks ─────────────
+-- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS book_id TEXT DEFAULT '';

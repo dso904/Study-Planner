@@ -105,6 +105,7 @@ export function getSubjectColorById(subjectId) {
 export const tasksAtom = atom([]);
 export const chaptersAtom = atom([]);
 export const notesAtom = atom([]);
+export const booksAtom = atom([]);
 
 // Track loading status so UI can show loading indicators
 // Values: 'idle' | 'loading' | 'done' | 'error'
@@ -129,7 +130,8 @@ export const SCHEDULE = {
 const globalDebounce = {
     tasks: {},
     chapters: {},
-    notes: {}
+    notes: {},
+    books: {}
 };
 
 // ─── Task Actions Hook (Cloud-Only) ──────────────────────────
@@ -279,6 +281,42 @@ export function useNoteActions() {
     return { notes, addNote, toggleNote, deleteNote, editNote };
 }
 
+// ─── Book Actions Hook (Cloud-Only) ──────────────────────────
+export function useBookActions() {
+    const [books, setBooks] = useAtom(booksAtom);
+    const booksRef = useRef(books);
+    useEffect(() => { booksRef.current = books; }, [books]);
+
+    const addBook = useCallback((book) => {
+        const record = { ...book, updated_at: book.updated_at || new Date().toISOString() };
+        setBooks((prev) => [...prev, record]);
+        dbUpsert('books', record);
+    }, [setBooks]);
+
+    const updateBook = useCallback((id, updates) => {
+        const updated = { ...updates, updated_at: new Date().toISOString() };
+        setBooks((prev) => prev.map((b) => b.id === id ? { ...b, ...updated } : b));
+        if (globalDebounce.books[id]) clearTimeout(globalDebounce.books[id]);
+
+        globalDebounce.books[id] = setTimeout(() => {
+            const current = booksRef.current.find((b) => b.id === id);
+            if (current) dbUpsert('books', current);
+            delete globalDebounce.books[id];
+        }, 500);
+    }, [setBooks]);
+
+    const deleteBook = useCallback((id) => {
+        setBooks((prev) => prev.filter((b) => b.id !== id));
+        dbDelete('books', id);
+    }, [setBooks]);
+
+    const getBooksBySubject = useCallback((subjectId) => {
+        return (booksRef.current || []).filter((b) => b.subject_id === subjectId);
+    }, []);
+
+    return { books, addBook, updateBook, deleteBook, getBooksBySubject };
+}
+
 // ─── Week Navigation Hook ────────────────────────────────────
 export function useWeekNavigation() {
     const [currentWeekStart, setCurrentWeekStart] = useAtom(currentWeekStartAtom);
@@ -299,18 +337,20 @@ export function useWeekNavigation() {
 }
 
 // ─── Load from Supabase (Cloud-Only) ─────────────────────────
-export async function loadFromSupabase(setTasks, setChapters, setNotes) {
+export async function loadFromSupabase(setTasks, setChapters, setNotes, setBooks) {
     if (!supabase) return;
     try {
-        const [serverTasks, serverChapters, serverNotes] = await Promise.all([
+        const [serverTasks, serverChapters, serverNotes, serverBooks] = await Promise.all([
             dbFetchTasks(180),
             dbFetchAll('chapters'),
             dbFetchAll('notes'),
+            dbFetchAll('books'),
         ]);
 
         if (serverTasks) setTasks(serverTasks);
         if (serverChapters) setChapters(serverChapters);
         if (serverNotes) setNotes(serverNotes);
+        if (serverBooks) setBooks(serverBooks);
     } catch (e) {
         console.warn('[DB] Failed to load data from Supabase:', e.message);
     }

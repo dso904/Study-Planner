@@ -2,18 +2,19 @@
 
 import { useEffect } from 'react';
 import { useSetAtom } from 'jotai';
-import { tasksAtom, chaptersAtom, notesAtom, hydrationStatusAtom, loadFromSupabase } from '@/lib/atoms';
+import { tasksAtom, chaptersAtom, notesAtom, booksAtom, hydrationStatusAtom, loadFromSupabase } from '@/lib/atoms';
 
 export default function StoreHydrator() {
     const setTasks = useSetAtom(tasksAtom);
     const setChapters = useSetAtom(chaptersAtom);
     const setNotes = useSetAtom(notesAtom);
+    const setBooks = useSetAtom(booksAtom);
     const setHydrationStatus = useSetAtom(hydrationStatusAtom);
 
     useEffect(() => {
         const doLoad = () => {
             setHydrationStatus('loading');
-            loadFromSupabase(setTasks, setChapters, setNotes)
+            loadFromSupabase(setTasks, setChapters, setNotes, setBooks)
                 .then(() => setHydrationStatus('done'))
                 .catch(() => setHydrationStatus('error'));
         };
@@ -24,7 +25,7 @@ export default function StoreHydrator() {
         // Re-sync when coming back online after a connection drop
         window.addEventListener('online', doLoad);
         return () => window.removeEventListener('online', doLoad);
-    }, [setTasks, setChapters, setNotes, setHydrationStatus]);
+    }, [setTasks, setChapters, setNotes, setBooks, setHydrationStatus]);
 
     return null;
 }

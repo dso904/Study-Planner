@@ -10,6 +10,7 @@ import {
     CalendarDays,
     LayoutDashboard,
     BookOpen,
+    Library,
     AlertTriangle,
     Menu,
 } from 'lucide-react';
@@ -18,6 +19,7 @@ const navItems = [
     { key: '/', label: 'Week Planner', icon: CalendarDays },
     { key: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: '/subjects', label: 'Subjects', icon: BookOpen },
+    { key: '/library', label: 'Library', icon: Library },
     { key: '/backlogs', label: 'Backlogs', icon: AlertTriangle },
 ];
 
