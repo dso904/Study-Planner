@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, useTaskActions, useWeekNavigation, SCHEDULE, SUBJECT_COLOR_MAP } from '@/lib/atoms';
+import { tasksAtom, chaptersAtom, useTaskActions, useWeekNavigation, SCHEDULE, SUBJECT_COLOR_MAP } from '@/lib/atoms';
 import { getWeekDays, getTimeSlots, getWeekRangeLabel, isCurrentWeek, getCurrentTimePosition, formatTime, dayjs } from '@/lib/dates';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +47,7 @@ const priorities = [
 ];
 
 /* ─── Positioned Task Block ─── */
-function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask }) {
+function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask, chapterName }) {
   const color = getTaskColor(task.subject_id);
 
   const handlePanelClick = (e) => {
@@ -127,6 +127,7 @@ function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTa
       {/* Main content — hides when panel is open */}
       <div className="task-block-content">
         <div className="task-block-title" style={{ color: '#fff', fontWeight: 700, textShadow: '0 0 8px rgba(255,255,255,0.3), 0 1px 4px rgba(0,0,0,0.6)' }}>{task.title}</div>
+        {chapterName && <div className="task-block-chapter" style={{ color: `${color.border}cc`, fontSize: '9px', fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', marginTop: '1px', textShadow: `0 0 6px ${color.glow}` }}>📑 {chapterName}</div>}
         <div className="task-block-time" style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, textShadow: '0 0 6px rgba(139,92,246,0.3)' }}>{formatTime(task.start_time)}–{formatTime(task.end_time)}</div>
         <div className="task-block-category" style={{ color: 'rgba(255,255,255,0.65)' }}>{task.category}</div>
       </div>
@@ -216,6 +217,7 @@ const TIME_COL_WIDTH = 70; // width of the time label column
 export default function WeeklyPlannerPage() {
   const { currentWeekStart, goToPreviousWeek, goToNextWeek, goToThisWeek } = useWeekNavigation();
   const tasks = useAtomValue(tasksAtom) || [];
+  const allChapters = useAtomValue(chaptersAtom) || [];
   const { updateTask } = useTaskActions();
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -389,6 +391,7 @@ export default function WeeklyPlannerPage() {
                   isExpanded={expandedTaskId === task.id}
                   onTogglePanel={handleTogglePanel}
                   onUpdateTask={handleUpdateTask}
+                  chapterName={task.chapter_id ? (allChapters.find(c => c.id === task.chapter_id)?.name || '') : ''}
                   style={{
                     position: 'absolute',
                     top: `${pos.top}px`,

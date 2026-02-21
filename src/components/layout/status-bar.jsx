@@ -43,10 +43,12 @@ export default function StatusBar() {
 
     return (
         <div
-            className="no-print fixed bottom-0 right-0 h-8 flex items-center justify-between px-5 z-50 border-t border-white/8 text-xs transition-all duration-300"
+            className="no-print fixed bottom-0 right-0 h-8 flex items-center justify-between px-5 z-50 border-t border-white/8 text-xs transition-[left] duration-300"
             style={{
                 left: collapsed ? 'var(--sidebar-collapsed-w)' : 'var(--sidebar-w)',
-                background: 'oklch(0.15 0.012 280)',
+                background: 'rgba(15,14,42,0.78)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
             }}
         >
             <div className="flex items-center gap-5">

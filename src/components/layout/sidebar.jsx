@@ -72,10 +72,12 @@ export default function Sidebar() {
 
     return (
         <nav
-            className="no-print fixed left-0 top-0 bottom-0 flex flex-col overflow-hidden z-50 transition-all duration-300 border-r border-white/8"
+            className="no-print fixed left-0 top-0 bottom-0 flex flex-col overflow-hidden z-50 transition-[width] duration-300 border-r border-white/8"
             style={{
                 width: collapsed ? 'var(--sidebar-collapsed-w)' : 'var(--sidebar-w)',
-                background: 'oklch(0.13 0.012 280)',
+                background: 'rgba(13,12,35,0.82)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
             }}
         >
             {/* Header: Hamburger + Logo */}

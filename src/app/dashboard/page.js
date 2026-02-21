@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, SUBJECTS, hydrationStatusAtom } from '@/lib/atoms';
+import { tasksAtom, chaptersAtom, SUBJECTS, hydrationStatusAtom } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import {
     CheckCheck, Clock, AlertTriangle, TrendingUp, Target, BarChart3,
-    Inbox, Sparkles,
+    Inbox, Sparkles, BookOpen,
 } from 'lucide-react';
 import PageTransition from '@/components/layout/page-transition';
 import { motion } from 'framer-motion';
@@ -68,25 +68,28 @@ function StatCard({ icon: Icon, label, value, color, delay = 0, className = '', 
     );
 }
 
-/* ─── Glowing Panel Wrapper ─── */
+/* ─── Glowing Panel Wrapper (Frosted Glass) ─── */
 function GlowPanel({ title, color = '#8b5cf6', children, delay = 0, className = '' }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay }}
-            className={`rounded-xl overflow-hidden transition-all duration-300 ${className}`}
+            className={`rounded-xl overflow-hidden ${className}`}
             style={{
-                background: `linear-gradient(145deg, ${color}06, transparent)`,
-                border: `1px solid ${color}18`,
+                background: `linear-gradient(145deg, ${color}0c, rgba(15,14,42,0.65))`,
+                border: `1px solid ${color}22`,
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                boxShadow: `inset 0 1px 0 ${color}10, 0 0 0 0.5px rgba(255,255,255,0.03)`,
             }}
             onMouseEnter={(e) => {
-                e.currentTarget.style.border = `1px solid ${color}40`;
-                e.currentTarget.style.boxShadow = `0 0 25px ${color}10, inset 0 1px 0 ${color}12`;
+                e.currentTarget.style.border = `1px solid ${color}45`;
+                e.currentTarget.style.boxShadow = `0 0 30px ${color}12, inset 0 1px 0 ${color}18, 0 0 0 0.5px rgba(255,255,255,0.05)`;
             }}
             onMouseLeave={(e) => {
-                e.currentTarget.style.border = `1px solid ${color}18`;
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.border = `1px solid ${color}22`;
+                e.currentTarget.style.boxShadow = `inset 0 1px 0 ${color}10, 0 0 0 0.5px rgba(255,255,255,0.03)`;
             }}
         >
             <div className="p-5">
@@ -122,6 +125,7 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
     const tasks = useAtomValue(tasksAtom) || [];
+    const allChapters = useAtomValue(chaptersAtom) || [];
     const subjects = SUBJECTS;
     const hydrationStatus = useAtomValue(hydrationStatusAtom);
 
@@ -347,7 +351,10 @@ export default function DashboardPage() {
                                         <div className="w-1 h-5 rounded-full shrink-0" style={{ background: '#fb923c', opacity: Math.max(0.3, 1 - idx * 0.1) }} />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-xs font-medium text-zinc-200 truncate">{task.title}</p>
-                                            <p className="text-[9px] text-zinc-600 mono">{dayjs(task.date).format('ddd D')} · {task.start_time}</p>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[9px] text-zinc-600 mono">{dayjs(task.date).format('ddd D')} · {task.start_time}</span>
+                                                {task.chapter_id && (() => { const ch = allChapters.find(c => c.id === task.chapter_id); return ch ? <span className="text-[9px] mono font-bold text-zinc-500">📑 {ch.name}</span> : null; })()}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -386,6 +393,74 @@ export default function DashboardPage() {
                         </div>
                     </GlowPanel>
                 </div>
+
+                {/* Chapter Progress — full width */}
+                <GlowPanel title="📚 Chapter Progress" color="#a78bfa" delay={0.38}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                        {subjects.map((s) => {
+                            const subChapters = allChapters.filter((c) => c.subject_id === s.id);
+                            const total = subChapters.length;
+                            const notStarted = subChapters.filter((c) => c.status === 'not_started' || (!c.status)).length;
+                            const inProgress = subChapters.filter((c) => c.status === 'in_progress').length;
+                            const completed = subChapters.filter((c) => c.status === 'completed').length;
+                            const pct = total ? Math.round((completed / total) * 100) : 0;
+                            return (
+                                <div
+                                    key={s.id}
+                                    className="rounded-xl p-4 transition-all duration-300"
+                                    style={{
+                                        background: `linear-gradient(145deg, ${s.color}08, transparent)`,
+                                        border: `1px solid ${s.color}18`,
+                                    }}
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <span className="text-lg">{s.emoji}</span>
+                                        <span className="text-sm font-bold text-zinc-200">{s.name}</span>
+                                        <span className="ml-auto text-[10px] mono font-bold" style={{ color: s.color }}>{pct}%</span>
+                                    </div>
+                                    {total === 0 ? (
+                                        <p className="text-[10px] text-zinc-600 mono">No chapters added</p>
+                                    ) : (
+                                        <>
+                                            <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-3">
+                                                <motion.div
+                                                    className="h-full rounded-full"
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${pct}%` }}
+                                                    transition={{ duration: 0.6, delay: 0.4 }}
+                                                    style={{ background: `linear-gradient(90deg, ${s.color}80, ${s.color})`, boxShadow: `0 0 8px ${s.color}40` }}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-2 h-2 rounded-full" style={{ background: '#64748b' }} />
+                                                        <span className="text-[10px] text-zinc-400 font-medium">Not Started</span>
+                                                    </div>
+                                                    <span className="text-[10px] mono font-bold text-zinc-400">{notStarted}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-2 h-2 rounded-full" style={{ background: '#22d3ee' }} />
+                                                        <span className="text-[10px] text-zinc-400 font-medium">In Progress</span>
+                                                    </div>
+                                                    <span className="text-[10px] mono font-bold text-cyan-400">{inProgress}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-2 h-2 rounded-full" style={{ background: '#34d399' }} />
+                                                        <span className="text-[10px] text-zinc-400 font-medium">Completed</span>
+                                                    </div>
+                                                    <span className="text-[10px] mono font-bold text-emerald-400">{completed}</span>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </GlowPanel>
             </div>
         </PageTransition>
     );

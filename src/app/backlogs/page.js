@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, useTaskActions, SUBJECTS, getSubjectColorById } from '@/lib/atoms';
+import { tasksAtom, chaptersAtom, useTaskActions, SUBJECTS, getSubjectColorById } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import PageTransition from '@/components/layout/page-transition';
 
 export default function BacklogsPage() {
     const tasks = useAtomValue(tasksAtom) || [];
+    const allChapters = useAtomValue(chaptersAtom) || [];
     const subjects = SUBJECTS;
     const { updateTask, deleteTask } = useTaskActions();
     const [selected, setSelected] = useState(new Set());
@@ -183,9 +184,10 @@ export default function BacklogsPage() {
 
                                     <div className="flex-1 min-w-0">
                                         <p className="text-[13px] font-semibold text-zinc-200 truncate">{task.title}</p>
-                                        <div className="flex items-center gap-2 mt-0.5">
+                                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                             <span className="text-[9px] text-zinc-600 mono">{dayjs(task.date).format('MMM D')}</span>
                                             {task.subject_name && <span className="text-[9px] mono font-semibold" style={{ color }}>{task.subject_name}</span>}
+                                            {task.chapter_id && (() => { const ch = allChapters.find(c => c.id === task.chapter_id); return ch ? <span className="text-[9px] mono font-bold" style={{ color: `${color}cc` }}>📑 {ch.name}</span> : null; })()}
                                             <Badge
                                                 variant="outline"
                                                 className="mono text-[8px] px-1.5 py-0 border-white/8 text-zinc-600"

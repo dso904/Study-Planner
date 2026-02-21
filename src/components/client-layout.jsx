@@ -23,7 +23,7 @@ function AppShell({ children }) {
             </a>
             <Sidebar />
             <div
-                className="flex flex-1 flex-col h-screen overflow-hidden transition-all duration-300"
+                className="flex flex-1 flex-col h-screen overflow-hidden transition-[margin-left] duration-300"
                 style={{ marginLeft: sidebarW }}
             >
                 <Topbar />

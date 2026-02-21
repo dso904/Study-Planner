@@ -2,7 +2,7 @@
 
 import { useState, useRef, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
-import { tasksAtom, SUBJECTS, useWeekNavigation } from '@/lib/atoms';
+import { tasksAtom, chaptersAtom, SUBJECTS, useWeekNavigation } from '@/lib/atoms';
 import { getWeekDays, getTimeSlots, formatTime, dayjs } from '@/lib/dates';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -25,6 +25,7 @@ const priorityDot = {
 
 export default function PrintModal({ open, onClose }) {
     const tasks = useAtomValue(tasksAtom) || [];
+    const allChapters = useAtomValue(chaptersAtom) || [];
     const subjects = SUBJECTS;
     const { currentWeekStart } = useWeekNavigation();
     const printRef = useRef(null);
@@ -52,6 +53,12 @@ export default function PrintModal({ open, onClose }) {
     const getSubjectName = (subjectId) => {
         const s = subjects.find((x) => x.id === subjectId);
         return s?.name || '';
+    };
+
+    const getChapterName = (chapterId) => {
+        if (!chapterId) return '';
+        const ch = allChapters.find((c) => c.id === chapterId);
+        return ch?.name || '';
     };
 
     const handlePrint = () => {
@@ -391,6 +398,7 @@ export default function PrintModal({ open, onClose }) {
                                                 </td>
                                                 <td>
                                                     <div className="task-title">{task.title}</div>
+                                                    {getChapterName(task.chapter_id) && <div className="task-meta" style={{ marginBottom: '2px' }}><span>📑 {getChapterName(task.chapter_id)}</span></div>}
                                                     <div className="task-meta">
                                                         <span className="priority-dot" style={{ background: priorityDot[task.priority] || '#facc15' }} />
                                                         <span>{task.priority}</span>
@@ -454,6 +462,7 @@ export default function PrintModal({ open, onClose }) {
                                             </td>
                                             <td className="py-1.5 px-2">
                                                 <span className={`font-medium ${task.status === 'done' ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>{task.title}</span>
+                                                {getChapterName(task.chapter_id) && <div className="text-[8px] mono font-bold text-zinc-500 mt-0.5">📑 {getChapterName(task.chapter_id)}</div>}
                                                 <div className="flex items-center gap-1 mt-0.5">
                                                     <div className="w-1 h-1 rounded-full" style={{ background: priorityDot[task.priority] || '#facc15' }} />
                                                     <span className="text-[8px] mono text-zinc-600">{task.category?.replaceAll('_', ' ')}</span>
