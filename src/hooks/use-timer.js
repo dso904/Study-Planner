@@ -24,7 +24,8 @@ function playCompletionSound() {
 
     // Resume context if suspended (browser autoplay policy)
     if (ctx.state === 'suspended') {
-        ctx.resume().catch(console.error);
+        // Use empty catch to gracefully ignore unhandled promise rejections when the browser enforces strict audio autoplay policies
+        ctx.resume().catch(() => { });
     }
 
     try {

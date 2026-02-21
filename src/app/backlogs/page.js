@@ -13,6 +13,24 @@ import PageTransition from '@/components/layout/page-transition';
 
 // I1-FIX: Removed local subjectColors map — using centralized getSubjectColorById
 
+/* ─── Action Button ─── */
+const ActionBtn = ({ icon: Icon, label, color, onClick }) => (
+    <button
+        onClick={onClick}
+        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold mono tracking-wider transition-all duration-200 hover:scale-105"
+        style={{
+            color,
+            background: `${color}12`,
+            border: `1px solid ${color}25`,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${color}60`; e.currentTarget.style.boxShadow = `0 0 12px ${color}20`; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${color}25`; e.currentTarget.style.boxShadow = 'none'; }}
+    >
+        {Icon && <Icon size={12} />}
+        {label}
+    </button>
+);
+
 export default function BacklogsPage() {
     const tasks = useAtomValue(tasksAtom) || [];
     const allChapters = useAtomValue(chaptersAtom) || [];
@@ -55,24 +73,6 @@ export default function BacklogsPage() {
     const getSubjectColor = (subjectId) => {
         return getSubjectColorById(subjectId);
     };
-
-    /* ─── Action Button ─── */
-    const ActionBtn = ({ icon: Icon, label, color, onClick }) => (
-        <button
-            onClick={onClick}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold mono tracking-wider transition-all duration-200 hover:scale-105"
-            style={{
-                color,
-                background: `${color}12`,
-                border: `1px solid ${color}25`,
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${color}60`; e.currentTarget.style.boxShadow = `0 0 12px ${color}20`; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = `${color}25`; e.currentTarget.style.boxShadow = 'none'; }}
-        >
-            {Icon && <Icon size={12} />}
-            {label}
-        </button>
-    );
 
     return (
         <PageTransition>

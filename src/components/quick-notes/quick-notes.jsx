@@ -17,6 +17,7 @@ function NoteItem({ note, onToggle, onDelete, onEdit }) {
     }, [editing]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setText(note.text);
     }, [note.text]);
 

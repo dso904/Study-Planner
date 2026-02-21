@@ -209,8 +209,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
     const allChapters = useAtomValue(chaptersAtom) || [];
     const { addTask, updateTask, deleteTask } = useTaskActions();
     const [form, setForm] = useState(initialForm);
-    const wasEditingRef = useRef(false);
-    const isEditing = open ? !!task : wasEditingRef.current;
+    const [wasEditing, setWasEditing] = useState(false);
+    const isEditing = open ? !!task : wasEditing;
 
     const subjectOptions = useMemo(() => [
         { value: '', label: 'No subject', emoji: '📂', color: '#64748b' },
@@ -231,7 +231,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
 
     useEffect(() => {
         if (!open) return; // Don't reset form when closing — prevents flash
-        wasEditingRef.current = !!task;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setWasEditing(!!task);
         if (task) {
             setForm({
                 title: task.title || '', subject_id: task.subject_id || '', subject_name: task.subject_name || '',
@@ -273,14 +274,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
             return;
         }
 
-        // M4-FIX: Validate end_time is after start_time
-        if (form.start_time && form.end_time && form.end_time <= form.start_time) {
-            toast.error('Invalid time range', {
-                description: 'End time must be after start time',
-                duration: 4000,
-            });
-            return;
-        }
+        // Note: We removed the end_time > start_time check to allow overnight tasks (e.g. 23:00 to 01:00)
 
         if (isEditing) {
             updateTask(task.id, { ...form });

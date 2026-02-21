@@ -7,6 +7,7 @@ import { useRef, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
+import { toast } from 'sonner';
 dayjs.extend(isoWeek);
 
 // ─── Supabase Helpers ────────────────────────────────────────
@@ -14,22 +15,36 @@ dayjs.extend(isoWeek);
 // No localStorage caching — data is always fetched fresh from the database on load.
 
 async function dbUpsert(table, data) {
-    if (!supabase) return;
+    if (!supabase) return false;
     try {
         const { error } = await supabase.from(table).upsert(data, { onConflict: 'id' });
-        if (error) console.warn(`[DB] upsert ${table}:`, error.message);
+        if (error) {
+            console.warn(`[DB] upsert ${table}:`, error.message);
+            toast.error(`Failed to save to ${table}`, { description: error.message });
+            return false;
+        }
+        return true;
     } catch (e) {
         console.warn(`[DB] upsert ${table} failed:`, e.message);
+        toast.error(`Network error saving to ${table}`, { description: e.message });
+        return false;
     }
 }
 
 async function dbDelete(table, id) {
-    if (!supabase) return;
+    if (!supabase) return false;
     try {
         const { error } = await supabase.from(table).delete().eq('id', id);
-        if (error) console.warn(`[DB] delete ${table}:`, error.message);
+        if (error) {
+            console.warn(`[DB] delete ${table}:`, error.message);
+            toast.error(`Failed to delete from ${table}`, { description: error.message });
+            return false;
+        }
+        return true;
     } catch (e) {
         console.warn(`[DB] delete ${table} failed:`, e.message);
+        toast.error(`Network error deleting from ${table}`, { description: e.message });
+        return false;
     }
 }
 
@@ -40,11 +55,11 @@ async function dbFetchTasks(daysBack = 180) {
     if (!supabase) return null;
     try {
         const cutoff = dayjs().subtract(daysBack, 'day').format('YYYY-MM-DD');
-        console.info(`[DB] Fetching tasks from ${cutoff} onward (${daysBack}-day window)`);
+        console.info(`[DB] Fetching tasks from ${cutoff} onward (${daysBack}-day window, plus backlogs)`);
         const { data, error } = await supabase
             .from('tasks')
             .select('*')
-            .gte('date', cutoff)
+            .or(`date.gte.${cutoff},is_backlog.eq.true`)
             .order('created_at', { ascending: true });
         if (error) { console.warn(`[DB] fetch tasks:`, error.message); return null; }
         return Array.isArray(data) ? data : null;
@@ -110,12 +125,18 @@ export const SCHEDULE = {
     weekStartDay: 1,
 };
 
+// Global debounce mapping to prevent concurrent UI components from stepping on each other's Supabase network calls
+const globalDebounce = {
+    tasks: {},
+    chapters: {},
+    notes: {}
+};
+
 // ─── Task Actions Hook (Cloud-Only) ──────────────────────────
 export function useTaskActions() {
     const [tasks, setTasks] = useAtom(tasksAtom);
     const [linkedTask, setLinkedTask] = useAtom(timerLinkedTaskAtom);
     const tasksRef = useRef(tasks);
-    const debounceRef = useRef({});
     useEffect(() => { tasksRef.current = tasks; }, [tasks]);
 
     const addTask = useCallback((task) => {
@@ -128,12 +149,12 @@ export function useTaskActions() {
         const updated = { ...updates, updated_at: new Date().toISOString() };
         setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...updated } : t));
         // Read latest from ref to push complete record to cloud
-        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+        if (globalDebounce.tasks[id]) clearTimeout(globalDebounce.tasks[id]);
 
-        debounceRef.current[id] = setTimeout(() => {
+        globalDebounce.tasks[id] = setTimeout(() => {
             const current = tasksRef.current.find((t) => t.id === id);
             if (current) dbUpsert('tasks', current);
-            delete debounceRef.current[id];
+            delete globalDebounce.tasks[id];
         }, 500);
     }, [setTasks]);
 
@@ -173,7 +194,6 @@ export function useTaskActions() {
 export function useChapterActions() {
     const [chapters, setChapters] = useAtom(chaptersAtom);
     const chaptersRef = useRef(chapters);
-    const debounceRef = useRef({});
     useEffect(() => { chaptersRef.current = chapters; }, [chapters]);
 
     const addChapter = useCallback((chapter) => {
@@ -185,12 +205,12 @@ export function useChapterActions() {
     const updateChapter = useCallback((id, updates) => {
         const updated = { ...updates, updated_at: new Date().toISOString() };
         setChapters((prev) => prev.map((c) => c.id === id ? { ...c, ...updated } : c));
-        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+        if (globalDebounce.chapters[id]) clearTimeout(globalDebounce.chapters[id]);
 
-        debounceRef.current[id] = setTimeout(() => {
+        globalDebounce.chapters[id] = setTimeout(() => {
             const c = chaptersRef.current.find((x) => x.id === id);
             if (c) dbUpsert('chapters', c);
-            delete debounceRef.current[id];
+            delete globalDebounce.chapters[id];
         }, 500);
     }, [setChapters]);
 
@@ -210,7 +230,6 @@ export function useChapterActions() {
 export function useNoteActions() {
     const [notes, setNotes] = useAtom(notesAtom);
     const notesRef = useRef(notes);
-    const debounceRef = useRef({});
     useEffect(() => { notesRef.current = notes; }, [notes]);
 
     const addNote = useCallback((text) => {
@@ -229,12 +248,12 @@ export function useNoteActions() {
         setNotes((prev) => prev.map((n) =>
             n.id === id ? { ...n, done: !n.done, updated_at: new Date().toISOString() } : n
         ));
-        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+        if (globalDebounce.notes[id]) clearTimeout(globalDebounce.notes[id]);
 
-        debounceRef.current[id] = setTimeout(() => {
+        globalDebounce.notes[id] = setTimeout(() => {
             const note = notesRef.current.find((n) => n.id === id);
             if (note) dbUpsert('notes', note);
-            delete debounceRef.current[id];
+            delete globalDebounce.notes[id];
         }, 500);
     }, [setNotes]);
 
@@ -248,12 +267,12 @@ export function useNoteActions() {
         setNotes((prev) => prev.map((n) =>
             n.id === id ? { ...n, text, updated_at } : n
         ));
-        if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+        if (globalDebounce.notes[id]) clearTimeout(globalDebounce.notes[id]);
 
-        debounceRef.current[id] = setTimeout(() => {
+        globalDebounce.notes[id] = setTimeout(() => {
             const note = notesRef.current.find((n) => n.id === id);
             if (note) dbUpsert('notes', note);
-            delete debounceRef.current[id];
+            delete globalDebounce.notes[id];
         }, 1000);
     }, [setNotes]);
 

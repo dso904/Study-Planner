@@ -227,6 +227,7 @@ export default function WeeklyPlannerPage() {
   const gridRef = useRef(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimePosition(getCurrentTimePosition(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour));
     const interval = setInterval(() => {
       setTimePosition(getCurrentTimePosition(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour));
@@ -298,8 +299,14 @@ export default function WeeklyPlannerPage() {
     const endHour = parseInt(endParts[0], 10);
     const endMin = parseInt(endParts[1] || '0', 10);
 
-    const startOffset = (startHour - SCHEDULE.dayStartHour) + startMin / 60;
-    const endOffset = (endHour - SCHEDULE.dayStartHour) + endMin / 60;
+    let startOffset = (startHour - SCHEDULE.dayStartHour) + startMin / 60;
+    let endOffset = (endHour - SCHEDULE.dayStartHour) + endMin / 60;
+
+    // Handle overnight tasks that span past midnight
+    if (endOffset < startOffset) {
+      endOffset += 24;
+    }
+
     const durationSlots = Math.max(endOffset - startOffset, 0.5); // minimum half-slot
 
     const top = HEADER_HEIGHT + startOffset * SLOT_HEIGHT;
