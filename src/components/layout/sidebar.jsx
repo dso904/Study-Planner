@@ -34,7 +34,7 @@ function NavItem({ item, active, collapsed }) {
                 sidebar-nav-item
                 flex items-center gap-3 w-full rounded-xl transition-all duration-200 relative
                 ${collapsed ? 'justify-center py-3 px-0' : 'py-2.5 px-4'}
-                ${active ? 'active font-semibold text-white' : 'text-zinc-500 hover:text-zinc-200'}
+                ${active ? 'active font-semibold text-white' : 'text-zinc-400 hover:text-zinc-200'}
             `}
         >
             <item.icon size={20} strokeWidth={1.8} className="relative z-10 shrink-0" />
@@ -109,7 +109,7 @@ export default function Sidebar() {
             className="no-print fixed left-0 top-0 bottom-0 flex flex-col overflow-hidden z-50 transition-[width] duration-300 border-r border-white/8"
             style={{
                 width: collapsed ? 'var(--sidebar-collapsed-w)' : 'var(--sidebar-w)',
-                background: 'rgba(13,12,35,0.82)',
+                background: 'rgba(22,20,52,0.88)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
             }}

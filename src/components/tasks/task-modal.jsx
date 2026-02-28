@@ -40,38 +40,38 @@ function TimeSpinner({ value, onChange, label }) {
 
     return (
         <div>
-            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">{label}</Label>
+            <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">{label}</Label>
             <div className="flex items-center gap-1 mt-1 rounded-md px-2 py-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 {/* Hours */}
                 <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'hour')}>
-                    <button type="button" onClick={incHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
+                    <button type="button" onClick={incHour} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
                     <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
                         {String(hours).padStart(2, '0')}
                     </span>
-                    <button type="button" onClick={decHour} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
+                    <button type="button" onClick={decHour} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronDown size={14} />
                     </button>
                 </div>
 
-                <span className="text-zinc-500 font-bold text-sm select-none">:</span>
+                <span className="text-zinc-400 font-bold text-sm select-none">:</span>
 
                 {/* Minutes */}
                 <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'minute')}>
-                    <button type="button" onClick={incMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
+                    <button type="button" onClick={incMin} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
                     <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
                         {String(minutes).padStart(2, '0')}
                     </span>
-                    <button type="button" onClick={decMin} className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
+                    <button type="button" onClick={decMin} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronDown size={14} />
                     </button>
                 </div>
 
                 {/* AM/PM label */}
-                <span className="text-[9px] font-semibold text-zinc-500 mono ml-1 select-none">
+                <span className="text-[9px] font-semibold text-zinc-400 mono ml-1 select-none">
                     {hours < 12 ? 'AM' : 'PM'}
                 </span>
             </div>
@@ -163,7 +163,7 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
                         }}
                     >
                         {label && (
-                            <p className="px-2 py-1 text-[8px] mono font-bold uppercase tracking-widest text-zinc-600 mb-0.5">
+                            <p className="px-2 py-1 text-[8px] mono font-bold uppercase tracking-widest text-zinc-500 mb-0.5">
                                 {label}
                             </p>
                         )}
@@ -328,7 +328,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         </p>
                         {/* Title */}
                         <div>
-                            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Task</Label>
+                            <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Task</Label>
                             <Input
                                 placeholder="e.g., Kinematics — HCV Ch.4"
                                 value={form.title}
@@ -340,7 +340,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         {/* Subject + Chapter */}
                         <div className={`grid gap-3 ${form.subject_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
                             <div>
-                                <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Subject</Label>
+                                <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Subject</Label>
                                 <ModularSelect
                                     value={form.subject_id}
                                     onChange={handleSubjectChange}
@@ -352,7 +352,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                             </div>
                             {form.subject_id && chapterOptions.length > 1 && (
                                 <div>
-                                    <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Chapter</Label>
+                                    <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Chapter</Label>
                                     <ModularSelect
                                         value={form.chapter_id}
                                         onChange={(v) => updateField('chapter_id', v)}
@@ -367,7 +367,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         {/* Book from Library — hidden for lecture, tuition, school, test */}
                         {form.subject_id && bookOptions.length > 1 && !['lecture', 'tuition', 'school', 'test'].includes(form.category) && (
                             <div>
-                                <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">📕 Book (from Library)</Label>
+                                <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">📕 Book (from Library)</Label>
                                 <ModularSelect
                                     value={form.book_id}
                                     onChange={(v) => updateField('book_id', v)}
@@ -380,7 +380,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         )}
                         {/* Category */}
                         <div>
-                            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Category</Label>
+                            <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Category</Label>
                             <ModularSelect
                                 value={form.category}
                                 onChange={(v) => updateField('category', v)}
@@ -400,7 +400,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         {/* Date + Times */}
                         <div className="grid grid-cols-3 gap-3">
                             <div>
-                                <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Date</Label>
+                                <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Date</Label>
                                 <Input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className="bg-white/5 border-white/10 mt-1" />
                             </div>
                             <TimeSpinner label="Start" value={form.start_time} onChange={(v) => updateField('start_time', v)} />
@@ -408,7 +408,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         </div>
                         {/* Notes */}
                         <div>
-                            <Label className="text-zinc-400 mono text-[11px] uppercase tracking-wider">Notes</Label>
+                            <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Notes</Label>
                             <Textarea
                                 placeholder="Additional details..."
                                 value={form.notes}
@@ -429,7 +429,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                         )}
                     </div>
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" onClick={onClose} className="text-zinc-400 hover:text-zinc-200">
+                        <Button variant="ghost" onClick={onClose} className="text-zinc-300 hover:text-zinc-200">
                             Cancel
                         </Button>
                         <Button onClick={handleSave} disabled={!form.title.trim()} className="font-bold tracking-wider text-white text-xs bg-violet-600 hover:bg-violet-500">

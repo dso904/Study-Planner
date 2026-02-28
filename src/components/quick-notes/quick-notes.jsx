@@ -59,7 +59,7 @@ function NoteItem({ note, onToggle, onDelete, onEdit }) {
                 />
             ) : (
                 <span
-                    className={`flex-1 text-sm leading-relaxed cursor-pointer transition-all ${note.done ? 'line-through text-zinc-600' : 'text-zinc-300'
+                    className={`flex-1 text-sm leading-relaxed cursor-pointer transition-all ${note.done ? 'line-through text-zinc-500' : 'text-zinc-300'
                         }`}
                     onDoubleClick={() => { if (!note.done) { setEditing(true); } }}
                 >
@@ -70,7 +70,7 @@ function NoteItem({ note, onToggle, onDelete, onEdit }) {
             {/* Delete */}
             <button
                 onClick={() => onDelete(note.id)}
-                className="opacity-0 group-hover:opacity-100 mt-0.5 text-zinc-600 hover:text-red-400 transition-all"
+                className="opacity-0 group-hover:opacity-100 mt-0.5 text-zinc-500 hover:text-red-400 transition-all"
             >
                 <Trash2 size={14} />
             </button>
@@ -123,7 +123,7 @@ export default function QuickNotes() {
                         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                         className="fixed right-0 top-0 bottom-0 w-[360px] z-[61] flex flex-col overflow-hidden border-l border-white/8"
                         style={{
-                            background: 'oklch(0.13 0.015 280 / 95%)',
+                            background: 'oklch(0.18 0.015 280 / 95%)',
                             backdropFilter: 'blur(20px)',
                         }}
                     >
@@ -135,14 +135,14 @@ export default function QuickNotes() {
                                 </div>
                                 <div>
                                     <h2 className="text-sm font-bold text-zinc-100">Quick Notes</h2>
-                                    <p className="text-[10px] text-zinc-500 mono tracking-wide">
+                                    <p className="text-[10px] text-zinc-400 mono tracking-wide">
                                         {undone.length} pending · {done.length} done
                                     </p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setOpen(false)}
-                                className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-white/6 transition-all"
+                                className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-white/6 transition-all"
                             >
                                 <X size={16} />
                             </button>
@@ -157,7 +157,7 @@ export default function QuickNotes() {
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
                                     placeholder="Add a note..."
-                                    className="flex-1 bg-white/[0.04] text-sm text-zinc-200 placeholder-zinc-600 px-3 py-2 rounded-lg border border-white/8 outline-none focus:border-rose-500/40 focus:bg-white/[0.06] transition-all"
+                                    className="flex-1 bg-white/[0.05] text-sm text-zinc-200 placeholder-zinc-500 px-3 py-2 rounded-lg border border-white/10 outline-none focus:border-rose-500/40 focus:bg-white/[0.07] transition-all"
                                 />
                                 <button
                                     onClick={handleAdd}
@@ -172,10 +172,10 @@ export default function QuickNotes() {
                         {/* Notes list */}
                         <div className="flex-1 overflow-y-auto px-1 py-2">
                             {(!notes || notes.length === 0) ? (
-                                <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3">
-                                    <StickyNote size={40} strokeWidth={1} className="opacity-30" />
+                                <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-3">
+                                    <StickyNote size={40} strokeWidth={1} className="opacity-40" />
                                     <p className="text-sm">No notes yet</p>
-                                    <p className="text-xs text-zinc-700">Jot down reminders, errands, ideas...</p>
+                                    <p className="text-xs text-zinc-500">Jot down reminders, errands, ideas...</p>
                                 </div>
                             ) : (
                                 <AnimatePresence mode="popLayout">
@@ -194,7 +194,7 @@ export default function QuickNotes() {
                                     {undone.length > 0 && done.length > 0 && (
                                         <div className="flex items-center gap-3 px-4 py-2 my-1">
                                             <div className="flex-1 h-px bg-white/6" />
-                                            <span className="text-[9px] mono font-semibold text-zinc-600 uppercase tracking-widest">
+                                            <span className="text-[9px] mono font-semibold text-zinc-500 uppercase tracking-widest">
                                                 Completed
                                             </span>
                                             <div className="flex-1 h-px bg-white/6" />
@@ -220,7 +220,7 @@ export default function QuickNotes() {
                             <div className="px-4 py-3 border-t border-white/6">
                                 <button
                                     onClick={() => done.forEach((n) => deleteNote(n.id))}
-                                    className="w-full text-xs text-zinc-600 hover:text-red-400 transition-colors py-1"
+                                    className="w-full text-xs text-zinc-500 hover:text-red-400 transition-colors py-1"
                                 >
                                     Clear {done.length} completed note{done.length > 1 ? 's' : ''}
                                 </button>

@@ -46,7 +46,7 @@ export default function StatusBar() {
             className="no-print fixed bottom-0 right-0 h-8 flex items-center justify-between px-5 z-50 border-t border-white/8 text-xs transition-[left] duration-300"
             style={{
                 left: collapsed ? 'var(--sidebar-collapsed-w)' : 'var(--sidebar-w)',
-                background: 'rgba(15,14,42,0.78)',
+                background: 'rgba(24,22,55,0.85)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
             }}
@@ -54,18 +54,18 @@ export default function StatusBar() {
             <div className="flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
                     <Flame size={14} className="text-orange-400" />
-                    <span className="text-zinc-500">Streak: <span className="font-semibold text-orange-400 mono">{streak} day{streak !== 1 ? 's' : ''}</span></span>
+                    <span className="text-zinc-400">Streak: <span className="font-semibold text-orange-400 mono">{streak} day{streak !== 1 ? 's' : ''}</span></span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <CheckCheck size={14} className="text-rose-400" />
-                    <span className="text-zinc-500">Today: <span className="font-semibold text-rose-400 mono">{todayDone}/{todayTotal}</span></span>
+                    <span className="text-zinc-400">Today: <span className="font-semibold text-rose-400 mono">{todayDone}/{todayTotal}</span></span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <Clock size={14} className="text-teal-400" />
-                    <span className="text-zinc-500">Hours: <span className="font-semibold text-teal-400 mono">{hoursToday.toFixed(1)}h</span></span>
+                    <span className="text-zinc-400">Hours: <span className="font-semibold text-teal-400 mono">{hoursToday.toFixed(1)}h</span></span>
                 </div>
             </div>
-            <span className="text-zinc-500">{dayjs().format('dddd, MMMM D, YYYY')}</span>
+            <span className="text-zinc-400">{dayjs().format('dddd, MMMM D, YYYY')}</span>
         </div>
     );
 }

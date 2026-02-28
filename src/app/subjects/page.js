@@ -78,7 +78,7 @@ function StatusSelector({ value, onChange, parentColor }) {
                             backdropFilter: 'blur(20px)',
                         }}
                     >
-                        <p className="px-2.5 py-1.5 text-[9px] mono font-extrabold uppercase tracking-[0.15em] text-zinc-500 mb-1">
+                        <p className="px-2.5 py-1.5 text-[9px] mono font-extrabold uppercase tracking-[0.15em] text-zinc-400 mb-1">
                             CHAPTER STATUS
                         </p>
                         {chapterStatuses.map((s) => {
@@ -221,8 +221,8 @@ function SubjectQuadrant({ subject }) {
             <div className="flex-1 overflow-auto px-5 pb-2 custom-scrollbar">
                 {chapters.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-20 gap-1">
-                        <BookOpen size={18} className="text-zinc-700" />
-                        <p className="text-[12px] text-zinc-600 font-medium">No chapters yet</p>
+                        <BookOpen size={18} className="text-zinc-500" />
+                        <p className="text-[12px] text-zinc-400 font-medium">No chapters yet</p>
                     </div>
                 ) : (
                     <div className="space-y-2">
@@ -255,7 +255,7 @@ function SubjectQuadrant({ subject }) {
                                         />
                                         <button
                                             onClick={() => deleteChapter(ch.id)}
-                                            className="opacity-0 group-hover/ch:opacity-100 text-zinc-700 hover:text-red-400 transition-all p-1 rounded-lg hover:bg-red-500/10"
+                                            className="opacity-0 group-hover/ch:opacity-100 text-zinc-500 hover:text-red-400 transition-all p-1 rounded-lg hover:bg-red-500/10"
                                         >
                                             <Trash2 size={13} />
                                         </button>
@@ -318,7 +318,7 @@ function SubjectQuadrant({ subject }) {
                             </div>
                             <div>
                                 <span style={{ color: subject.color }} className="font-extrabold text-base">{subject.name}</span>
-                                <p className="text-[10px] text-zinc-500 font-medium mono tracking-wider mt-0.5">ADD NEW CHAPTER</p>
+                                <p className="text-[10px] text-zinc-400 font-medium mono tracking-wider mt-0.5">ADD NEW CHAPTER</p>
                             </div>
                         </DialogTitle>
                     </DialogHeader>
@@ -335,7 +335,7 @@ function SubjectQuadrant({ subject }) {
                             }
                             value={newChapterName}
                             onChange={(e) => setNewChapterName(e.target.value)}
-                            className="mt-2 h-11 text-[14px] font-semibold text-zinc-100 placeholder:text-zinc-600"
+                            className="mt-2 h-11 text-[14px] font-semibold text-zinc-100 placeholder:text-zinc-500"
                             style={{
                                 background: `${subject.color}06`,
                                 border: `1.5px solid ${subject.color}20`,

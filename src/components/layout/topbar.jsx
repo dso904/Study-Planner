@@ -42,7 +42,7 @@ export default function Topbar() {
             <header
                 className="no-print h-16 min-h-16 px-6 flex items-center justify-between border-b border-white/8 sticky top-0 z-40"
                 style={{
-                    background: 'oklch(0.14 0.012 280 / 80%)',
+                    background: 'oklch(0.18 0.014 280 / 80%)',
                     backdropFilter: 'blur(12px)',
                 }}
             >
@@ -55,7 +55,7 @@ export default function Topbar() {
                         <span
                             className={`text-xs mono px-2.5 py-1 rounded-md ${isCurrentWeek(currentWeekStart)
                                 ? 'bg-rose-500/10 text-rose-300'
-                                : 'bg-white/4 text-zinc-500'
+                                : 'bg-white/4 text-zinc-400'
                                 }`}
                         >
                             {getWeekRangeLabel(currentWeekStart)}
@@ -73,7 +73,7 @@ export default function Topbar() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={`relative text-zinc-500 hover:text-zinc-200 ${timerOpen ? 'text-cyan-400 bg-cyan-500/10' : ''}`}
+                                    className={`relative text-zinc-400 hover:text-zinc-200 ${timerOpen ? 'text-cyan-400 bg-cyan-500/10' : ''}`}
                                     onClick={() => setTimerOpen(!timerOpen)}
                                 >
                                     {timerMode === 'timer' ? (
@@ -94,7 +94,7 @@ export default function Topbar() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className={`relative text-zinc-500 hover:text-zinc-200 ${notesOpen ? 'text-amber-400 bg-amber-500/10' : ''}`}
+                                    className={`relative text-zinc-400 hover:text-zinc-200 ${notesOpen ? 'text-amber-400 bg-amber-500/10' : ''}`}
                                     onClick={() => setNotesOpen(!notesOpen)}
                                 >
                                     <StickyNote size={18} />
@@ -115,7 +115,7 @@ export default function Topbar() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-zinc-500 hover:text-zinc-200"
+                                    className="text-zinc-400 hover:text-zinc-200"
                                     onClick={() => setPrintOpen(true)}
                                 >
                                     <Printer size={18} />

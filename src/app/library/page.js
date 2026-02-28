@@ -432,7 +432,7 @@ function BookModal({ open, onClose, book, subjectId, subjectColor }) {
                             <span style={{ color: accentColor }} className="font-extrabold text-base">
                                 {isEditing ? 'Edit Book' : 'Add Book'}
                             </span>
-                            <p className="text-[10px] text-zinc-500 font-medium mono tracking-wider mt-0.5">
+                            <p className="text-[10px] text-zinc-400 font-medium mono tracking-wider mt-0.5">
                                 {currentSubject?.name || 'LIBRARY'} • {isEditing ? 'MODIFY' : 'NEW ENTRY'}
                             </p>
                         </div>
@@ -479,7 +479,7 @@ function BookModal({ open, onClose, book, subjectId, subjectColor }) {
                             placeholder="e.g., HC Verma Vol 1, NCERT Physics..."
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="mt-1.5 h-11 text-[14px] font-semibold text-zinc-100 placeholder:text-zinc-600"
+                            className="mt-1.5 h-11 text-[14px] font-semibold text-zinc-100 placeholder:text-zinc-500"
                             style={{
                                 background: `${accentColor}06`,
                                 border: `1.5px solid ${accentColor}20`,
@@ -498,7 +498,7 @@ function BookModal({ open, onClose, book, subjectId, subjectColor }) {
                             placeholder="e.g., H.C. Verma, R.D. Sharma..."
                             value={author}
                             onChange={(e) => setAuthor(e.target.value)}
-                            className="mt-1.5 h-10 text-[13px] font-medium text-zinc-200 placeholder:text-zinc-600"
+                            className="mt-1.5 h-10 text-[13px] font-medium text-zinc-200 placeholder:text-zinc-500"
                             style={{
                                 background: `${accentColor}04`,
                                 border: `1.5px solid ${accentColor}15`,
@@ -516,7 +516,7 @@ function BookModal({ open, onClose, book, subjectId, subjectColor }) {
                             placeholder="e.g., Bharati Bhawan, S. Chand..."
                             value={publisher}
                             onChange={(e) => setPublisher(e.target.value)}
-                            className="mt-1.5 h-10 text-[13px] font-medium text-zinc-200 placeholder:text-zinc-600"
+                            className="mt-1.5 h-10 text-[13px] font-medium text-zinc-200 placeholder:text-zinc-500"
                             style={{
                                 background: `${accentColor}04`,
                                 border: `1.5px solid ${accentColor}15`,
@@ -707,7 +707,7 @@ export default function LibraryPage() {
                     </div>
                     <div>
                         <h1 className="text-lg font-extrabold text-zinc-100 tracking-tight">My Library</h1>
-                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] mono text-zinc-500">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.15em] mono text-zinc-400">
                             📚 {allBooks.length} {allBooks.length === 1 ? 'Book' : 'Books'} across {SUBJECTS.length} subjects
                         </p>
                     </div>
@@ -787,7 +787,7 @@ export default function LibraryPage() {
                     >
                         {activeSubject === 'all' ? '📚 Complete Collection' : `${activeSubjectData?.emoji || '📚'} ${activeSubjectData?.name || ''} Shelf`}
                     </p>
-                    <p className="mono text-[9px] font-bold tracking-wider text-zinc-600">
+                    <p className="mono text-[9px] font-bold tracking-wider text-zinc-500">
                         {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
                     </p>
                 </div>

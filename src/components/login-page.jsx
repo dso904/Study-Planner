@@ -44,24 +44,13 @@ export default function LoginPage() {
 
     return (
         <div className="login-page">
-            {/* Floating particles */}
-            <div className="login-particles">
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="login-particle" style={{ '--i': i }} />
-                ))}
-            </div>
-
             {/* Central login card */}
             <motion.div
                 initial={{ opacity: 0, y: 20, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, ease: [0.23, 1.0, 0.32, 1.0] }}
                 className={`login-card ${shake ? 'login-shake' : ''}`}
-            >
-                {/* Glowing border effect */}
-                <div className="login-card-glow" />
-
-                {/* Header */}
+            >                    {/* Header */}
                 <div className="login-header">
                     <motion.div
                         className="login-logo"

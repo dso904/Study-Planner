@@ -328,22 +328,22 @@ export default function PrintModal({ open, onClose }) {
                                 flex-1 flex flex-col items-center py-2 rounded-md transition-all text-center
                                 ${selectedDate === day.date
                                     ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                    : 'text-zinc-500 hover:bg-white/4 hover:text-zinc-300 border border-transparent'}
+                                    : 'text-zinc-400 hover:bg-white/4 hover:text-zinc-300 border border-transparent'}
                                 ${day.isToday ? 'ring-1 ring-rose-500/20' : ''}
                             `}
                         >
                             <span className="mono text-[8px] font-semibold uppercase tracking-wider">{day.dayName}</span>
                             <span className={`text-sm font-bold ${day.isToday && selectedDate === day.date ? 'neon-text' : ''}`}>{day.dayNumber}</span>
-                            <span className="mono text-[8px] text-zinc-600">{day.monthName}</span>
+                            <span className="mono text-[8px] text-zinc-500">{day.monthName}</span>
                         </button>
                     ))}
                 </div>
 
                 {/* Stats */}
                 <div className="flex items-center gap-4 px-3 py-2 rounded-md bg-white/3">
-                    <span className="text-[10px] mono text-zinc-500">Tasks: <strong className="text-zinc-200">{totalTasks}</strong></span>
-                    <span className="text-[10px] mono text-zinc-500">Done: <strong className="text-green-400">{doneTasks}</strong></span>
-                    <span className="text-[10px] mono text-zinc-500">Hours: <strong className="text-cyan-400">{totalHours.toFixed(1)}</strong></span>
+                    <span className="text-[10px] mono text-zinc-400">Tasks: <strong className="text-zinc-200">{totalTasks}</strong></span>
+                    <span className="text-[10px] mono text-zinc-400">Done: <strong className="text-green-400">{doneTasks}</strong></span>
+                    <span className="text-[10px] mono text-zinc-400">Hours: <strong className="text-cyan-400">{totalHours.toFixed(1)}</strong></span>
                 </div>
 
                 {/* Preview */}
@@ -431,13 +431,13 @@ export default function PrintModal({ open, onClose }) {
                     {/* Visual preview inside dialog */}
                     {dayTasks.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10">
-                            <CalendarDays size={28} className="text-zinc-700 mb-2" />
-                            <p className="text-xs text-zinc-600">No tasks scheduled for {dayjs(selectedDate).format('dddd, MMM D')}</p>
+                            <CalendarDays size={28} className="text-zinc-500 mb-2" />
+                            <p className="text-xs text-zinc-400">No tasks scheduled for {dayjs(selectedDate).format('dddd, MMM D')}</p>
                         </div>
                     ) : (
                         <table className="w-full text-xs">
                             <thead>
-                                <tr className="text-[9px] mono uppercase tracking-wider text-zinc-600 border-b border-white/8">
+                                <tr className="text-[9px] mono uppercase tracking-wider text-zinc-500 border-b border-white/8">
                                     <th className="py-2 px-2 text-left w-8">✓</th>
                                     <th className="py-2 px-2 text-left">Time</th>
                                     <th className="py-2 px-2 text-left">Task</th>
@@ -462,10 +462,10 @@ export default function PrintModal({ open, onClose }) {
                                             </td>
                                             <td className="py-1.5 px-2">
                                                 <span className={`font-medium ${task.status === 'done' ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>{task.title}</span>
-                                                {getChapterName(task.chapter_id) && <div className="text-[8px] mono font-bold text-zinc-500 mt-0.5">📑 {getChapterName(task.chapter_id)}</div>}
+                                                {getChapterName(task.chapter_id) && <div className="text-[8px] mono font-bold text-zinc-400 mt-0.5">📑 {getChapterName(task.chapter_id)}</div>}
                                                 <div className="flex items-center gap-1 mt-0.5">
                                                     <div className="w-1 h-1 rounded-full" style={{ background: priorityDot[task.priority] || '#facc15' }} />
-                                                    <span className="text-[8px] mono text-zinc-600">{task.category?.replaceAll('_', ' ')}</span>
+                                                    <span className="text-[8px] mono text-zinc-500">{task.category?.replaceAll('_', ' ')}</span>
                                                 </div>
                                             </td>
                                             <td className="py-1.5 px-2">

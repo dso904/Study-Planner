@@ -92,7 +92,7 @@ export default function BacklogsPage() {
                         </div>
                         <div>
                             <h1 className="text-xl font-extrabold text-zinc-100 tracking-tight">BACKLOGS</h1>
-                            <p className="text-[10px] mono text-zinc-600">{backlogs.length} overdue task{backlogs.length !== 1 ? 's' : ''}</p>
+                            <p className="text-[10px] mono text-zinc-400">{backlogs.length} overdue task{backlogs.length !== 1 ? 's' : ''}</p>
                         </div>
                     </div>
                 </motion.div>
@@ -131,11 +131,11 @@ export default function BacklogsPage() {
                     >
                         <CheckCheck size={36} className="text-green-400 mx-auto mb-3" style={{ filter: 'drop-shadow(0 0 8px rgba(52,211,153,0.4))' }} />
                         <p className="text-lg font-extrabold text-zinc-100">All caught up!</p>
-                        <p className="text-xs text-zinc-600 mt-1 mono">No overdue tasks to worry about.</p>
+                        <p className="text-xs text-zinc-400 mt-1 mono">No overdue tasks to worry about.</p>
                     </motion.div>
                 ) : (
                     <div className="space-y-2">
-                        <button onClick={toggleAll} className="text-[9px] mono font-bold text-zinc-600 hover:text-zinc-400 transition-colors uppercase tracking-wider">
+                        <button onClick={toggleAll} className="text-[9px] mono font-bold text-zinc-500 hover:text-zinc-300 transition-colors uppercase tracking-wider">
                             {selected.size === backlogs.length ? '✕ Deselect all' : '☐ Select all'}
                         </button>
 
@@ -185,12 +185,12 @@ export default function BacklogsPage() {
                                     <div className="flex-1 min-w-0">
                                         <p className="text-[13px] font-semibold text-zinc-200 truncate">{task.title}</p>
                                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                            <span className="text-[9px] text-zinc-600 mono">{dayjs(task.date).format('MMM D')}</span>
+                                            <span className="text-[9px] text-zinc-400 mono">{dayjs(task.date).format('MMM D')}</span>
                                             {task.subject_name && <span className="text-[9px] mono font-semibold" style={{ color }}>{task.subject_name}</span>}
                                             {task.chapter_id && (() => { const ch = allChapters.find(c => c.id === task.chapter_id); return ch ? <span className="text-[9px] mono font-bold" style={{ color: `${color}cc` }}>📑 {ch.name}</span> : null; })()}
                                             <Badge
                                                 variant="outline"
-                                                className="mono text-[8px] px-1.5 py-0 border-white/8 text-zinc-600"
+                                                className="mono text-[8px] px-1.5 py-0 border-white/10 text-zinc-500"
                                             >
                                                 {task.category?.replaceAll('_', ' ')}
                                             </Badge>

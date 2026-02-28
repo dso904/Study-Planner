@@ -18,8 +18,8 @@ import { motion } from 'framer-motion';
 
 const chartColors = ['#8b5cf6', '#22d3ee', '#f472b6', '#fb923c', '#34d399', '#facc15', '#f43f5e'];
 const tooltipStyle = {
-    background: '#110f36',
-    border: '1px solid rgba(139,92,246,0.25)',
+    background: '#1a1845',
+    border: '1px solid rgba(139,92,246,0.30)',
     borderRadius: 10,
     fontSize: 11,
     color: '#e2e8f0',
@@ -57,7 +57,7 @@ function StatCard({ icon: Icon, label, value, color, delay = 0, className = '', 
             <div className="p-5 relative">
                 <div className="absolute top-4 right-4">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: `${color}12` }}>
-                        <Icon size={20} color={color} style={{ opacity: 0.5 }} />
+                        <Icon size={20} color={color} style={{ opacity: 0.65 }} />
                     </div>
                 </div>
                 <p className="mono text-[10px] font-bold uppercase tracking-[0.12em] mb-1" style={{ color }}>{label}</p>
@@ -77,19 +77,19 @@ function GlowPanel({ title, color = '#8b5cf6', children, delay = 0, className = 
             transition={{ duration: 0.3, delay }}
             className={`rounded-xl overflow-hidden ${className}`}
             style={{
-                background: `linear-gradient(145deg, ${color}0c, rgba(15,14,42,0.65))`,
-                border: `1px solid ${color}22`,
+                background: `linear-gradient(145deg, ${color}0c, rgba(24,22,55,0.65))`,
+                border: `1px solid ${color}28`,
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                boxShadow: `inset 0 1px 0 ${color}10, 0 0 0 0.5px rgba(255,255,255,0.03)`,
+                boxShadow: `inset 0 1px 0 ${color}14, 0 0 0 0.5px rgba(255,255,255,0.05)`,
             }}
             onMouseEnter={(e) => {
-                e.currentTarget.style.border = `1px solid ${color}45`;
-                e.currentTarget.style.boxShadow = `0 0 30px ${color}12, inset 0 1px 0 ${color}18, 0 0 0 0.5px rgba(255,255,255,0.05)`;
+                e.currentTarget.style.border = `1px solid ${color}50`;
+                e.currentTarget.style.boxShadow = `0 0 30px ${color}15, inset 0 1px 0 ${color}1c, 0 0 0 0.5px rgba(255,255,255,0.07)`;
             }}
             onMouseLeave={(e) => {
-                e.currentTarget.style.border = `1px solid ${color}22`;
-                e.currentTarget.style.boxShadow = `inset 0 1px 0 ${color}10, 0 0 0 0.5px rgba(255,255,255,0.03)`;
+                e.currentTarget.style.border = `1px solid ${color}28`;
+                e.currentTarget.style.boxShadow = `inset 0 1px 0 ${color}14, 0 0 0 0.5px rgba(255,255,255,0.05)`;
             }}
         >
             <div className="p-5">
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                                         style={{ filter: 'drop-shadow(0 0 3px rgba(139,92,246,0.4))' }}
                                     />
                                 </svg>
-                                <span className="text-[10px] text-zinc-500 mono">{todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0}% done</span>
+                                <span className="text-[10px] text-zinc-400 mono">{todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0}% done</span>
                             </div>
                         )}
                     </StatCard>
@@ -251,7 +251,7 @@ export default function DashboardPage() {
                 <GlowPanel title="📊 Daily Study Hours (14 days)" color="#8b5cf6" delay={0.18}>
                     <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={dailyData} barCategoryGap="15%">
-                            <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                            <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
                             <YAxis hide />
                             <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
                             <Bar dataKey="hours" fill="#8b5cf6" radius={[5, 5, 0, 0]} />
@@ -276,7 +276,7 @@ export default function DashboardPage() {
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <span className="text-3xl font-extrabold mono neon-text">{weekProgress}%</span>
-                                    <span className="text-[10px] text-zinc-600 mono">{weekDone}/{weekTotal} done</span>
+                                    <span className="text-[10px] text-zinc-400 mono">{weekDone}/{weekTotal} done</span>
                                 </div>
                             </div>
                         </div>
@@ -299,7 +299,7 @@ export default function DashboardPage() {
                     <GlowPanel title="📈 Weekly Trend" color="#22d3ee" delay={0.28}>
                         <ResponsiveContainer width="100%" height={180}>
                             <LineChart data={weeklyData}>
-                                <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
                                 <YAxis hide />
                                 <Tooltip contentStyle={tooltipStyle} />
                                 <Line type="monotone" dataKey="hours" stroke="#22d3ee" strokeWidth={2.5} dot={{ fill: '#22d3ee', r: 5, strokeWidth: 0 }}
@@ -321,8 +321,8 @@ export default function DashboardPage() {
                             </ResponsiveContainer>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-[180px] gap-2">
-                                <Sparkles size={24} className="text-zinc-700" />
-                                <p className="text-[11px] text-zinc-600 mono">Complete tasks to see your breakdown</p>
+                                <Sparkles size={24} className="text-zinc-500" />
+                                <p className="text-[11px] text-zinc-400 mono">Complete tasks to see your breakdown</p>
                             </div>
                         )}
                     </GlowPanel>
@@ -333,9 +333,9 @@ export default function DashboardPage() {
                     <GlowPanel title="Upcoming Tasks" color="#fb923c" delay={0.32}>
                         {upcoming.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-8 gap-2">
-                                <Inbox size={28} className="text-zinc-700" />
-                                <p className="text-[11px] text-zinc-600 mono">No upcoming tasks</p>
-                                <p className="text-[9px] text-zinc-700">Tasks you create will appear here</p>
+                                <Inbox size={28} className="text-zinc-500" />
+                                <p className="text-[11px] text-zinc-400 mono">No upcoming tasks</p>
+                                <p className="text-[9px] text-zinc-500">Tasks you create will appear here</p>
                             </div>
                         ) : (
                             <div className="space-y-1.5">
@@ -352,8 +352,8 @@ export default function DashboardPage() {
                                         <div className="flex-1 min-w-0">
                                             <p className="text-xs font-medium text-zinc-200 truncate">{task.title}</p>
                                             <div className="flex items-center gap-1.5">
-                                                <span className="text-[9px] text-zinc-600 mono">{dayjs(task.date).format('ddd D')} · {task.start_time}</span>
-                                                {task.chapter_id && (() => { const ch = allChapters.find(c => c.id === task.chapter_id); return ch ? <span className="text-[9px] mono font-bold text-zinc-500">📑 {ch.name}</span> : null; })()}
+                                                <span className="text-[9px] text-zinc-400 mono">{dayjs(task.date).format('ddd D')} · {task.start_time}</span>
+                                                {task.chapter_id && (() => { const ch = allChapters.find(c => c.id === task.chapter_id); return ch ? <span className="text-[9px] mono font-bold text-zinc-400">📑 {ch.name}</span> : null; })()}
                                             </div>
                                         </div>
                                     </div>
@@ -376,7 +376,7 @@ export default function DashboardPage() {
                                                 <div className="w-2.5 h-2.5 rounded" style={{ background: s.color, boxShadow: `0 0 8px ${s.color}50` }} />
                                                 <span className="text-sm font-semibold text-zinc-200">{s.name}</span>
                                             </div>
-                                            <span className="text-[10px] text-zinc-500 mono">{done}/{total} • {pct}%</span>
+                                            <span className="text-[10px] text-zinc-400 mono">{done}/{total} • {pct}%</span>
                                         </div>
                                         <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                                             <motion.div
@@ -419,7 +419,7 @@ export default function DashboardPage() {
                                         <span className="ml-auto text-[10px] mono font-bold" style={{ color: s.color }}>{pct}%</span>
                                     </div>
                                     {total === 0 ? (
-                                        <p className="text-[10px] text-zinc-600 mono">No chapters added</p>
+                                        <p className="text-[10px] text-zinc-400 mono">No chapters added</p>
                                     ) : (
                                         <>
                                             <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-3">

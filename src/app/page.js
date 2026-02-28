@@ -204,7 +204,7 @@ function TimeSlotCell({ isToday, onClick }) {
       onClick={onClick}
     >
       <div className="empty-slot-hint">
-        <Plus size={10} className="text-zinc-700" />
+        <Plus size={10} className="text-zinc-500" />
       </div>
     </div>
   );
@@ -334,7 +334,7 @@ export default function WeeklyPlannerPage() {
             <CalendarDays size={14} className="mr-1" />
             NOW
           </Button>
-          <Badge variant="outline" className="mono text-[10px] tracking-wider border-white/10 text-zinc-500 px-2 py-0.5">
+          <Badge variant="outline" className="mono text-[10px] tracking-wider border-white/12 text-zinc-400 px-2 py-0.5">
             {getWeekRangeLabel(currentWeekStart)}
           </Badge>
           <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-400 hover:text-zinc-200" onClick={goToNextWeek}>
@@ -358,7 +358,7 @@ export default function WeeklyPlannerPage() {
           {/* Header */}
           <div className="week-grid-header">
             <div className="week-grid-header-cell">
-              <span className="mono text-[8px] font-semibold text-zinc-600">TIME</span>
+              <span className="mono text-[8px] font-semibold text-zinc-500">TIME</span>
             </div>
             {weekDays.map((day) => (
               <div key={day.date} className={`week-grid-header-cell ${day.isToday ? 'today' : ''}`}>

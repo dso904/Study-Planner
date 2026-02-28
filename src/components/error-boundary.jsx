@@ -35,7 +35,7 @@ export default class ErrorBoundary extends React.Component {
                     alignItems: 'center',
                     justifyContent: 'center',
                     height: '100vh',
-                    background: 'oklch(0.13 0.015 280)',
+                    background: 'oklch(0.16 0.015 280)',
                     color: '#e2e8f0',
                     fontFamily: "'Inter', system-ui, sans-serif",
                     gap: '16px',
