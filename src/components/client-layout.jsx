@@ -1,7 +1,9 @@
 'use client';
 
-import { Provider, useAtomValue } from 'jotai';
+import { useEffect } from 'react';
+import { Provider, useAtom, useAtomValue } from 'jotai';
 import { sidebarCollapsedAtom } from '@/lib/atoms';
+import { isAuthenticatedAtom, isSessionValid, destroySession } from '@/lib/auth';
 import Sidebar from '@/components/layout/sidebar';
 import Topbar from '@/components/layout/topbar';
 import StatusBar from '@/components/layout/status-bar';
@@ -9,6 +11,7 @@ import StoreHydrator from '@/components/store-hydrator';
 import QuickNotes from '@/components/quick-notes/quick-notes';
 import TimerWidget from '@/components/timer/timer-widget';
 import ErrorBoundary from '@/components/error-boundary';
+import LoginPage from '@/components/login-page';
 import { Toaster } from '@/components/ui/sonner';
 
 function AppShell({ children }) {
@@ -40,14 +43,51 @@ function AppShell({ children }) {
     );
 }
 
+function AuthGate({ children }) {
+    const [isAuthenticated, setAuthenticated] = useAtom(isAuthenticatedAtom);
+
+    // Restore session from sessionStorage on mount
+    useEffect(() => {
+        if (isSessionValid()) {
+            setAuthenticated(true);
+        }
+    }, [setAuthenticated]);
+
+    // Prevent back-button bypass: when logged out, replace history state
+    useEffect(() => {
+        if (!isAuthenticated) {
+            // Push a state so that pressing back repeatedly stays on login
+            window.history.replaceState({ loggedOut: true }, '', window.location.href);
+
+            const handlePopState = () => {
+                if (!isSessionValid()) {
+                    window.history.replaceState({ loggedOut: true }, '', window.location.href);
+                }
+            };
+
+            window.addEventListener('popstate', handlePopState);
+            return () => window.removeEventListener('popstate', handlePopState);
+        }
+    }, [isAuthenticated]);
+
+    if (!isAuthenticated) {
+        return <LoginPage />;
+    }
+
+    return children;
+}
+
 export default function ClientLayout({ children }) {
     return (
         <Provider>
-            <StoreHydrator />
-            <ErrorBoundary>
-                <AppShell>{children}</AppShell>
-            </ErrorBoundary>
+            <AuthGate>
+                <StoreHydrator />
+                <ErrorBoundary>
+                    <AppShell>{children}</AppShell>
+                </ErrorBoundary>
+            </AuthGate>
             <Toaster position="top-right" richColors />
         </Provider>
     );
 }
+

@@ -12,7 +12,7 @@
 </h1>
 
 <p align="center">
-  <strong>A premium, neon-infused study planner</strong> with a weekly timetable grid, interactive dashboard analytics, subject & chapter tracking, backlog management, a floating timer/stopwatch, quick notes, and print-ready schedules — all powered by Supabase cloud sync.
+  <strong>A premium, neon-infused study planner</strong> with a weekly timetable grid, interactive dashboard analytics, subject & chapter tracking, a book library, backlog management, a floating timer/stopwatch, quick notes, and print-ready schedules — all powered by Supabase cloud sync.
 </p>
 
 <p align="center">
@@ -60,6 +60,18 @@ A comprehensive analytics view with **6 stat cards** and **6 data visualizations
 | **Upcoming Tasks** | List | Next 8 pending tasks with urgency fading |
 | **Subject Progress** | Progress bars | Per-subject completion with animated fills |
 | **Chapter Progress** | Grid cards | Per-subject chapter status breakdown |
+
+### 📕 Library
+A beautiful, interactive **bookshelf UI** for managing study books per subject.
+
+| Feature | Description |
+|---|---|
+| **Visual bookshelf** | Books displayed as physical spines on wooden shelves with 3D depth illusion, shadows, and wood-grain textures |
+| **Subject-colored spines** | Each subject has a unique spine color palette with deterministic height/width variations for visual interest |
+| **Hover tooltip cards** | Hovering a book spine reveals a floating card with title, author, publisher, subject badge, and edit/delete actions |
+| **Subject tab filtering** | Tab bar to filter by subject or view the complete "All Books" collection |
+| **CRUD modal** | Add/edit books with title, author, publisher fields; subject selector for new books |
+| **Task linking** | Books from the library can be linked to tasks in the task modal (for Theory, Revision, Practice, and Others categories) |
 
 ### 📚 Subjects & Chapters
 A **2×2 quadrant grid** (Physics, Chemistry, Maths, Biology) + a full-width English card.
@@ -159,7 +171,7 @@ Generate print-ready daily routines.
 │  └────────────────────────────────────────────────────────┘  │
 │                              ▼                               │
 │                     Supabase PostgreSQL                       │
-│                   (tasks, chapters, notes)                    │
+│              (tasks, chapters, notes, books)                  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -172,7 +184,7 @@ flowchart LR
     B --> D[Debounced Supabase Write<br/><i>500ms for tasks/chapters<br/>1000ms for notes</i>]
     D --> E[(Supabase PostgreSQL)]
     F[Page Load / Online Event] --> G[StoreHydrator]
-    G --> H[Parallel Fetch:<br/>tasks + chapters + notes]
+    G --> H[Parallel Fetch:<br/>tasks + chapters + notes + books]
     H --> B
 ```
 
@@ -183,6 +195,7 @@ flowchart LR
 | `tasksAtom` | `atom([])` | Cloud-only | All tasks (fetched from Supabase) |
 | `chaptersAtom` | `atom([])` | Cloud-only | All chapters |
 | `notesAtom` | `atom([])` | Cloud-only | Quick notes |
+| `booksAtom` | `atom([])` | Cloud-only | Library books |
 | `hydrationStatusAtom` | `atom('idle')` | Memory | Loading state: idle → loading → done/error |
 | `sidebarCollapsedAtom` | `atomWithStorage` | localStorage | Sidebar expanded/collapsed |
 | `notesPanelOpenAtom` | `atom(false)` | Memory | Quick notes panel visibility |
@@ -199,6 +212,7 @@ flowchart LR
 | `useTaskActions()` | `lib/atoms.js` | CRUD operations for tasks with debounced cloud sync |
 | `useChapterActions()` | `lib/atoms.js` | CRUD for chapters |
 | `useNoteActions()` | `lib/atoms.js` | CRUD for notes (add, toggle, delete, edit) |
+| `useBookActions()` | `lib/atoms.js` | CRUD for library books |
 | `useWeekNavigation()` | `lib/atoms.js` | Navigate between ISO weeks |
 | `useTimerActions()` | `lib/timer-atoms.js` | Timer widget controls (open, close, preset, link) |
 | `useTimer()` | `hooks/use-timer.js` | High-precision timing loop using `requestAnimationFrame` |
@@ -234,7 +248,7 @@ NEXT_PUBLIC_SUPABASE_APP_SECRET=your-secret
 ### 3. Initialize the Database
 
 Open your Supabase SQL Editor and run [`supabase-schema.sql`](supabase-schema.sql). This creates:
-- ✅ Three tables: `tasks`, `chapters`, `notes`
+- ✅ Four tables: `tasks`, `chapters`, `notes`, `books`
 - ✅ Row Level Security (RLS) policies using custom header authentication
 - ✅ Indexes for date, subject, and done-status queries
 - ✅ Auto-updating `updated_at` triggers on all tables
@@ -267,7 +281,10 @@ npm start
 │ subject_id    TEXT         (e.g. 'physics')     │
 │ subject_name  TEXT         (e.g. 'Physics')     │
 │ chapter_id    TEXT         (UUID ref)           │
-│ category      TEXT         (lecture/practice..) │
+│ category      TEXT         (lecture/theory/     │
+│                            revision/practice/   │
+│                            test/school/tuition/ │
+│                            others)              │
 │ priority      TEXT         (high/medium/low)    │
 │ status        TEXT         (pending/done/skip)  │
 │ date          DATE NOT NULL                     │
@@ -279,6 +296,7 @@ npm start
 │ time_spent    INT          (seconds from timer) │
 │ created_at    TIMESTAMPTZ                       │
 │ updated_at    TIMESTAMPTZ  (auto-trigger)       │
+│ book_id       TEXT         (UUID ref to books)  │
 └────────────────────────────────────────────────┘
 
 ┌──────────── chapters ─────────────┐
@@ -296,6 +314,17 @@ npm start
 │ id           UUID PRIMARY KEY     │
 │ text         TEXT NOT NULL        │
 │ done         BOOLEAN              │
+│ created_at   TIMESTAMPTZ         │
+│ updated_at   TIMESTAMPTZ         │
+└───────────────────────────────────┘
+
+┌──────────── books ────────────────┐
+│ id           UUID PRIMARY KEY     │
+│ subject_id   TEXT NOT NULL        │
+│ title        TEXT NOT NULL        │
+│ author       TEXT                 │
+│ publisher    TEXT                 │
+│ sort_order   INT                  │
 │ created_at   TIMESTAMPTZ         │
 │ updated_at   TIMESTAMPTZ         │
 └───────────────────────────────────┘
@@ -323,6 +352,7 @@ Client (Supabase JS) ──[x-app-secret: H6V$f%x@bN]──► Supabase
 | `idx_tasks_subject` | tasks | `subject_id` | Subject filtering |
 | `idx_chapters_subject` | chapters | `subject_id` | Chapter lookups |
 | `idx_notes_done` | notes | `done` | Quick undone count |
+| `idx_books_subject` | books | `subject_id` | Book lookups by subject |
 
 ---
 
@@ -398,8 +428,9 @@ Day-Planner/
 │   │   ├── globals.css          # 1800-line design system
 │   │   ├── page.js              # 📅 Weekly Planner (home)
 │   │   ├── dashboard/page.js    # 📊 Dashboard analytics
-│   │   ├── backlogs/page.js     # ⚠️ Backlog management
-│   │   └── subjects/page.js     # 📚 Subject & chapter tracking
+│   │   ├── subjects/page.js     # 📚 Subject & chapter tracking
+│   │   ├── library/page.js      # 📕 Book library with bookshelf UI
+│   │   └── backlogs/page.js     # ⚠️ Backlog management
 │   │
 │   ├── components/
 │   │   ├── client-layout.jsx    # App shell (Sidebar + Topbar + StatusBar)

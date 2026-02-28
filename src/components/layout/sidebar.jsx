@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { sidebarCollapsedAtom } from '@/lib/atoms';
+import { isAuthenticatedAtom, destroySession } from '@/lib/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import {
@@ -13,6 +14,7 @@ import {
     Library,
     AlertTriangle,
     Menu,
+    LogOut,
 } from 'lucide-react';
 
 const navItems = [
@@ -70,7 +72,37 @@ function NavItem({ item, active, collapsed }) {
 
 export default function Sidebar() {
     const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
+    const setAuthenticated = useSetAtom(isAuthenticatedAtom);
     const pathname = usePathname();
+
+    const handleLogout = () => {
+        destroySession();
+        setAuthenticated(false);
+        // Replace history to prevent back-button bypass
+        window.history.replaceState({ loggedOut: true }, '', window.location.href);
+    };
+
+    const logoutButton = (
+        <button
+            onClick={handleLogout}
+            className={`sidebar-logout-btn ${collapsed ? 'collapsed' : ''}`}
+        >
+            <LogOut size={18} strokeWidth={2} className="shrink-0" />
+            <AnimatePresence>
+                {!collapsed && (
+                    <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="whitespace-nowrap"
+                    >
+                        Logout
+                    </motion.span>
+                )}
+            </AnimatePresence>
+        </button>
+    );
 
     return (
         <nav
@@ -125,6 +157,23 @@ export default function Sidebar() {
                     />
                 ))}
             </div>
+
+            {/* Logout button — pinned to bottom */}
+            <div className={`border-t border-white/8 ${collapsed ? 'px-2 py-3' : 'px-3 py-3'}`}>
+                {collapsed ? (
+                    <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>{logoutButton}</TooltipTrigger>
+                            <TooltipContent side="right" sideOffset={12}>
+                                Logout
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                ) : (
+                    logoutButton
+                )}
+            </div>
         </nav>
     );
 }
+

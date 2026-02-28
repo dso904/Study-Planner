@@ -87,6 +87,7 @@ const categories = [
     { value: 'test', label: 'Tests / Mock / Assignments', emoji: '📝', color: '#f472b6' },
     { value: 'school', label: 'School', emoji: '🏫', color: '#64748b' },
     { value: 'tuition', label: 'Tuition', emoji: '🎓', color: '#f43f5e' },
+    { value: 'others', label: 'Others', emoji: '📦', color: '#a1a1aa' },
 ];
 
 const priorities = [
