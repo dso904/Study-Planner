@@ -8,7 +8,7 @@
 </p>
 
 <h1 align="center">
-  📅 Day Planner — Command Center
+  📅 Day Planner
 </h1>
 
 <p align="center">

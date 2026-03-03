@@ -423,7 +423,7 @@ export default function PrintModal({ open, onClose }) {
                         )}
 
                         <div className="footer">
-                            <span>Day Planner — Command Center</span>
+                            <span>Day Planner</span>
                             <span>Printed {dayjs().format('MMM D, YYYY [at] h:mm A')}</span>
                         </div>
                     </div>
