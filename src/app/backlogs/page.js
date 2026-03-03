@@ -102,7 +102,7 @@ export default function BacklogsPage() {
                     <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-2 mb-3 p-3 rounded-xl"
+                        className="flex items-center gap-2 mb-3 p-3 rounded-xl flex-wrap"
                         style={{
                             background: 'linear-gradient(145deg, rgba(139,92,246,0.06), transparent)',
                             border: '1px solid rgba(139,92,246,0.2)',

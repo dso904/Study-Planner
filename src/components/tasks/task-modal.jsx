@@ -308,7 +308,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
 
     return (
         <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-            <DialogContent className="sm:max-w-[600px] bg-zinc-900 border-white/10 overflow-visible">
+            <DialogContent className="sm:max-w-[600px] bg-zinc-900 border-white/10 overflow-visible max-h-[100dvh] sm:max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <span className="neon-text font-extrabold text-lg">{isEditing ? 'EDIT TASK' : 'NEW TASK'}</span>
@@ -338,7 +338,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                             />
                         </div>
                         {/* Subject + Chapter */}
-                        <div className={`grid gap-3 ${form.subject_id ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        <div className={`grid gap-3 ${form.subject_id ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                             <div>
                                 <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Subject</Label>
                                 <ModularSelect
@@ -398,7 +398,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                             <span>🕐</span> Schedule & Details
                         </p>
                         {/* Date + Times */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
                                 <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">Date</Label>
                                 <Input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className="bg-white/5 border-white/10 mt-1" />

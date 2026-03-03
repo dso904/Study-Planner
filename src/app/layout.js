@@ -14,6 +14,13 @@ const mono = JetBrains_Mono({
   display: 'swap',
 });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata = {
   title: 'Day Planner',
   description: 'A premium study planner with weekly scheduling, subject tracking, and progress dashboard',

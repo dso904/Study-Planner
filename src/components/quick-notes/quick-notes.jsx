@@ -121,7 +121,7 @@ export default function QuickNotes() {
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                        className="fixed right-0 top-0 bottom-0 w-[360px] z-[61] flex flex-col overflow-hidden border-l border-white/8"
+                        className="quick-notes-panel fixed right-0 top-0 bottom-0 w-[360px] z-[61] flex flex-col overflow-hidden border-l border-white/8"
                         style={{
                             background: 'oklch(0.18 0.015 280 / 95%)',
                             backdropFilter: 'blur(20px)',

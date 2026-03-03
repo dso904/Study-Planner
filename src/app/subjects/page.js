@@ -372,14 +372,18 @@ export default function SubjectsPage() {
     return (
         <PageTransition>
             <div className="space-y-3">
-                {/* 2×2 grid for Physics, Chemistry, Maths, Biology — fills viewport */}
-                <div className="grid grid-cols-2 grid-rows-2 gap-3" style={{ height: 'calc(100vh - var(--topbar-h) - 3.5rem)' }}>
+                {/* 2×2 grid on desktop, single column on mobile — scrollable */}
+                <div
+                    className="subjects-grid grid grid-cols-1 md:grid-cols-2 gap-3"
+                    style={{ minHeight: 'min(calc(100vh - var(--topbar-h) - 3.5rem), 600px)' }}
+                >
                     {coreSubjects.map((subject, i) => (
                         <motion.div
                             key={subject.id}
                             initial={{ opacity: 0, scale: 0.96 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.35, delay: i * 0.08 }}
+                            className="min-h-[280px]"
                         >
                             <SubjectQuadrant subject={subject} />
                         </motion.div>
@@ -392,7 +396,7 @@ export default function SubjectsPage() {
                         initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.35, delay: 0.32 }}
-                        style={{ height: '280px' }}
+                        className="min-h-[280px]"
                     >
                         <SubjectQuadrant subject={english} />
                     </motion.div>

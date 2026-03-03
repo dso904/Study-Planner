@@ -43,7 +43,7 @@ export default function StatusBar() {
 
     return (
         <div
-            className="no-print fixed bottom-0 right-0 h-8 flex items-center justify-between px-5 z-50 border-t border-white/8 text-xs transition-[left] duration-300"
+            className="status-bar no-print fixed bottom-0 right-0 h-8 flex items-center justify-between px-5 z-50 border-t border-white/8 text-xs transition-[left] duration-300"
             style={{
                 left: collapsed ? 'var(--sidebar-collapsed-w)' : 'var(--sidebar-w)',
                 background: 'rgba(24,22,55,0.85)',
