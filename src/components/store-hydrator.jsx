@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSetAtom } from 'jotai';
-import { tasksAtom, chaptersAtom, notesAtom, booksAtom, hydrationStatusAtom, loadFromSupabase } from '@/lib/atoms';
+import { tasksAtom, chaptersAtom, notesAtom, booksAtom, hydrationStatusAtom, loadFromServer } from '@/lib/atoms';
 
 export default function StoreHydrator() {
     const setTasks = useSetAtom(tasksAtom);
@@ -14,7 +14,7 @@ export default function StoreHydrator() {
     useEffect(() => {
         const doLoad = () => {
             setHydrationStatus('loading');
-            loadFromSupabase(setTasks, setChapters, setNotes, setBooks)
+            loadFromServer(setTasks, setChapters, setNotes, setBooks)
                 .then(() => setHydrationStatus('done'))
                 .catch(() => setHydrationStatus('error'));
         };

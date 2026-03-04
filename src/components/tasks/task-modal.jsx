@@ -308,8 +308,8 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
 
     return (
         <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-            <DialogContent className="sm:max-w-[600px] bg-zinc-900 border-white/10 overflow-visible max-h-[100dvh] sm:max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[600px] bg-zinc-900 border-white/10 overflow-visible max-h-[100dvh] sm:max-h-[85vh] task-modal-content flex flex-col">
+                <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2">
                         <span className="neon-text font-extrabold text-lg">{isEditing ? 'EDIT TASK' : 'NEW TASK'}</span>
                         {isEditing && (
@@ -320,7 +320,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4 overflow-visible">
+                <div className="space-y-4 overflow-visible flex-1 overflow-y-auto min-h-0 task-modal-body">
                     {/* ─── Section 1: Task Info ─── */}
                     <div className="rounded-lg bg-white/[0.02] border border-white/[0.06] p-3.5 space-y-3">
                         <p className="mono text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-300 flex items-center gap-1.5">
@@ -420,7 +420,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
                     </div>
                 </div>
 
-                <DialogFooter className="flex items-center justify-between mt-4">
+                <DialogFooter className="flex items-center justify-between mt-4 shrink-0 task-modal-footer">
                     <div>
                         {isEditing && (
                             <Button variant="ghost" size="icon" onClick={handleDelete} className="text-red-400 hover:text-red-300 hover:bg-red-500/10">

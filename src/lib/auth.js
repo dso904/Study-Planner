@@ -31,6 +31,17 @@ export async function verifyCredentials(username, password) {
     return hash === CREDENTIALS.passwordHash;
 }
 
+// ─── Cookie Helpers ──────────────────────────────────────────
+// The session cookie is used by server-side API routes to verify auth.
+// SameSite=Strict ensures it's only sent to same-origin requests.
+function setSessionCookie() {
+    document.cookie = `${SESSION_KEY}=${SESSION_TOKEN}; path=/; SameSite=Strict`;
+}
+
+function clearSessionCookie() {
+    document.cookie = `${SESSION_KEY}=; path=/; SameSite=Strict; max-age=0`;
+}
+
 // ─── Session Management ──────────────────────────────────────
 export function isSessionValid() {
     if (typeof window === 'undefined') return false;
@@ -44,6 +55,7 @@ export function isSessionValid() {
 export function createSession() {
     try {
         sessionStorage.setItem(SESSION_KEY, SESSION_TOKEN);
+        setSessionCookie();
     } catch {
         // sessionStorage unavailable — session won't persist across refresh
     }
@@ -52,6 +64,7 @@ export function createSession() {
 export function destroySession() {
     try {
         sessionStorage.removeItem(SESSION_KEY);
+        clearSessionCookie();
     } catch {
         // nothing to clear
     }

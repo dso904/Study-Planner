@@ -4,82 +4,11 @@ import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { timerLinkedTaskAtom } from './timer-atoms';
 import { useRef, useEffect, useCallback } from 'react';
-import { supabase } from './supabase';
+import { apiFetch, apiUpsert, apiDelete } from './api';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import { toast } from 'sonner';
 dayjs.extend(isoWeek);
-
-// ─── Supabase Helpers ────────────────────────────────────────
-// Cloud-Only: all mutations update React state (optimistic UI), then push to Supabase.
-// No localStorage caching — data is always fetched fresh from the database on load.
-
-async function dbUpsert(table, data) {
-    if (!supabase) return false;
-    try {
-        const { error } = await supabase.from(table).upsert(data, { onConflict: 'id' });
-        if (error) {
-            console.warn(`[DB] upsert ${table}:`, error.message);
-            toast.error(`Failed to save to ${table}`, { description: error.message });
-            return false;
-        }
-        return true;
-    } catch (e) {
-        console.warn(`[DB] upsert ${table} failed:`, e.message);
-        toast.error(`Network error saving to ${table}`, { description: e.message });
-        return false;
-    }
-}
-
-async function dbDelete(table, id) {
-    if (!supabase) return false;
-    try {
-        const { error } = await supabase.from(table).delete().eq('id', id);
-        if (error) {
-            console.warn(`[DB] delete ${table}:`, error.message);
-            toast.error(`Failed to delete from ${table}`, { description: error.message });
-            return false;
-        }
-        return true;
-    } catch (e) {
-        console.warn(`[DB] delete ${table} failed:`, e.message);
-        toast.error(`Network error deleting from ${table}`, { description: e.message });
-        return false;
-    }
-}
-
-// L6-FIX: Make the 180-day cutoff explicit via logging and documentation
-// Note: Tasks older than `daysBack` days are NOT fetched from the server.
-// If the user needs historical data beyond this window, increase the value.
-async function dbFetchTasks(daysBack = 180) {
-    if (!supabase) return null;
-    try {
-        const cutoff = dayjs().subtract(daysBack, 'day').format('YYYY-MM-DD');
-        console.info(`[DB] Fetching tasks from ${cutoff} onward (${daysBack}-day window, plus backlogs)`);
-        const { data, error } = await supabase
-            .from('tasks')
-            .select('*')
-            .or(`date.gte.${cutoff},is_backlog.eq.true`)
-            .order('created_at', { ascending: true });
-        if (error) { console.warn(`[DB] fetch tasks:`, error.message); return null; }
-        return Array.isArray(data) ? data : null;
-    } catch (e) {
-        console.warn(`[DB] fetch tasks failed:`, e.message);
-        return null;
-    }
-}
-
-async function dbFetchAll(table, orderBy = 'created_at') {
-    if (!supabase) return null;
-    try {
-        const { data, error } = await supabase.from(table).select('*').order(orderBy, { ascending: true });
-        if (error) { console.warn(`[DB] fetch ${table}:`, error.message); return null; }
-        return Array.isArray(data) ? data : null;
-    } catch (e) {
-        console.warn(`[DB] fetch ${table} failed:`, e.message);
-        return null;
-    }
-}
 
 // ─── Hardcoded Subjects ──────────────────────────────────────
 export const SUBJECTS = [
@@ -126,7 +55,7 @@ export const SCHEDULE = {
     weekStartDay: 1,
 };
 
-// Global debounce mapping to prevent concurrent UI components from stepping on each other's Supabase network calls
+// Global debounce mapping to prevent concurrent UI components from stepping on each other's network calls
 const globalDebounce = {
     tasks: {},
     chapters: {},
@@ -144,7 +73,7 @@ export function useTaskActions() {
     const addTask = useCallback((task) => {
         const record = { ...task, updated_at: task.updated_at || new Date().toISOString() };
         setTasks((prev) => [...prev, record]);
-        dbUpsert('tasks', record);
+        apiUpsert('tasks', record);
     }, [setTasks]);
 
     const updateTask = useCallback((id, updates) => {
@@ -155,7 +84,7 @@ export function useTaskActions() {
 
         globalDebounce.tasks[id] = setTimeout(() => {
             const current = tasksRef.current.find((t) => t.id === id);
-            if (current) dbUpsert('tasks', current);
+            if (current) apiUpsert('tasks', current);
             delete globalDebounce.tasks[id];
         }, 500);
     }, [setTasks]);
@@ -165,7 +94,7 @@ export function useTaskActions() {
         if (linkedTask && linkedTask.id === id) {
             setLinkedTask(null);
         }
-        dbDelete('tasks', id);
+        apiDelete('tasks', id);
     }, [setTasks, linkedTask, setLinkedTask]);
 
     const getTasksForDate = useCallback((date) => {
@@ -201,7 +130,7 @@ export function useChapterActions() {
     const addChapter = useCallback((chapter) => {
         const record = { ...chapter, updated_at: new Date().toISOString() };
         setChapters((prev) => [...prev, record]);
-        dbUpsert('chapters', record);
+        apiUpsert('chapters', record);
     }, [setChapters]);
 
     const updateChapter = useCallback((id, updates) => {
@@ -211,14 +140,14 @@ export function useChapterActions() {
 
         globalDebounce.chapters[id] = setTimeout(() => {
             const c = chaptersRef.current.find((x) => x.id === id);
-            if (c) dbUpsert('chapters', c);
+            if (c) apiUpsert('chapters', c);
             delete globalDebounce.chapters[id];
         }, 500);
     }, [setChapters]);
 
     const deleteChapter = useCallback((id) => {
         setChapters((prev) => prev.filter((c) => c.id !== id));
-        dbDelete('chapters', id);
+        apiDelete('chapters', id);
     }, [setChapters]);
 
     const getChaptersBySubject = useCallback((subjectId) => {
@@ -243,7 +172,7 @@ export function useNoteActions() {
             updated_at: new Date().toISOString(),
         };
         setNotes((prev) => [note, ...prev]);
-        dbUpsert('notes', note);
+        apiUpsert('notes', note);
     }, [setNotes]);
 
     const toggleNote = useCallback((id) => {
@@ -254,14 +183,14 @@ export function useNoteActions() {
 
         globalDebounce.notes[id] = setTimeout(() => {
             const note = notesRef.current.find((n) => n.id === id);
-            if (note) dbUpsert('notes', note);
+            if (note) apiUpsert('notes', note);
             delete globalDebounce.notes[id];
         }, 500);
     }, [setNotes]);
 
     const deleteNote = useCallback((id) => {
         setNotes((prev) => prev.filter((n) => n.id !== id));
-        dbDelete('notes', id);
+        apiDelete('notes', id);
     }, [setNotes]);
 
     const editNote = useCallback((id, text) => {
@@ -273,7 +202,7 @@ export function useNoteActions() {
 
         globalDebounce.notes[id] = setTimeout(() => {
             const note = notesRef.current.find((n) => n.id === id);
-            if (note) dbUpsert('notes', note);
+            if (note) apiUpsert('notes', note);
             delete globalDebounce.notes[id];
         }, 1000);
     }, [setNotes]);
@@ -290,7 +219,7 @@ export function useBookActions() {
     const addBook = useCallback((book) => {
         const record = { ...book, updated_at: book.updated_at || new Date().toISOString() };
         setBooks((prev) => [...prev, record]);
-        dbUpsert('books', record);
+        apiUpsert('books', record);
     }, [setBooks]);
 
     const updateBook = useCallback((id, updates) => {
@@ -300,14 +229,14 @@ export function useBookActions() {
 
         globalDebounce.books[id] = setTimeout(() => {
             const current = booksRef.current.find((b) => b.id === id);
-            if (current) dbUpsert('books', current);
+            if (current) apiUpsert('books', current);
             delete globalDebounce.books[id];
         }, 500);
     }, [setBooks]);
 
     const deleteBook = useCallback((id) => {
         setBooks((prev) => prev.filter((b) => b.id !== id));
-        dbDelete('books', id);
+        apiDelete('books', id);
     }, [setBooks]);
 
     const getBooksBySubject = useCallback((subjectId) => {
@@ -336,15 +265,14 @@ export function useWeekNavigation() {
     return { currentWeekStart, setCurrentWeekStart, goToPreviousWeek, goToNextWeek, goToThisWeek };
 }
 
-// ─── Load from Supabase (Cloud-Only) ─────────────────────────
-export async function loadFromSupabase(setTasks, setChapters, setNotes, setBooks) {
-    if (!supabase) return;
+// ─── Load from Server (Cloud-Only) ───────────────────────────
+export async function loadFromServer(setTasks, setChapters, setNotes, setBooks) {
     try {
         const [serverTasks, serverChapters, serverNotes, serverBooks] = await Promise.all([
-            dbFetchTasks(180),
-            dbFetchAll('chapters'),
-            dbFetchAll('notes'),
-            dbFetchAll('books'),
+            apiFetch('tasks', { daysBack: 180 }),
+            apiFetch('chapters'),
+            apiFetch('notes'),
+            apiFetch('books'),
         ]);
 
         if (serverTasks) setTasks(serverTasks);
@@ -352,6 +280,6 @@ export async function loadFromSupabase(setTasks, setChapters, setNotes, setBooks
         if (serverNotes) setNotes(serverNotes);
         if (serverBooks) setBooks(serverBooks);
     } catch (e) {
-        console.warn('[DB] Failed to load data from Supabase:', e.message);
+        console.warn('[API] Failed to load data from server:', e.message);
     }
 }

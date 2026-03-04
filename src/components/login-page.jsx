@@ -70,14 +70,6 @@ export default function LoginPage() {
                     >
                         Day Planner
                     </motion.h1>
-                    <motion.p
-                        className="login-subtitle"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 0.4 }}
-                    >
-                        COMMAND CENTER
-                    </motion.p>
                 </div>
 
                 {/* Form */}

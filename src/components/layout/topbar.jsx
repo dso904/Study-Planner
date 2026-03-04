@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { currentWeekStartAtom, notesPanelOpenAtom, notesAtom } from '@/lib/atoms';
 import { timerOpenAtom, timerRunningAtom, timerSecondsAtom, timerModeAtom } from '@/lib/timer-atoms';
+import { isAuthenticatedAtom, destroySession } from '@/lib/auth';
 import { getWeekRangeLabel, isCurrentWeek } from '@/lib/dates';
-import { Printer, StickyNote, Timer, Clock } from 'lucide-react';
+import { Printer, StickyNote, Timer, Clock, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import PrintModal from '@/components/print-modal';
@@ -17,6 +18,19 @@ const viewTitles = {
     '/subjects': 'Subjects & Chapters',
     '/backlogs': 'Backlogs',
 };
+
+/* Hook to detect mobile viewport */
+function useIsMobile(breakpoint = 768) {
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+        const onChange = () => setIsMobile(mql.matches);
+        onChange();
+        mql.addEventListener('change', onChange);
+        return () => mql.removeEventListener('change', onChange);
+    }, [breakpoint]);
+    return isMobile;
+}
 
 export default function Topbar() {
     const pathname = usePathname();
@@ -30,6 +44,15 @@ export default function Topbar() {
     const timerRunning = useAtomValue(timerRunningAtom);
     const timerSeconds = useAtomValue(timerSecondsAtom);
     const timerMode = useAtomValue(timerModeAtom);
+
+    const setAuthenticated = useSetAtom(isAuthenticatedAtom);
+    const isMobile = useIsMobile();
+
+    const handleLogout = () => {
+        destroySession();
+        setAuthenticated(false);
+        window.history.replaceState({ loggedOut: true }, '', window.location.href);
+    };
 
     const formatTimerTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -124,6 +147,19 @@ export default function Topbar() {
                             <TooltipContent>Print daily routine</TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
+
+                    {/* Logout — only visible on mobile where sidebar is hidden */}
+                    {isMobile && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-400/70 hover:text-red-300 hover:bg-red-500/10"
+                            onClick={handleLogout}
+                            aria-label="Logout"
+                        >
+                            <LogOut size={18} />
+                        </Button>
+                    )}
                 </div>
             </header>
 
