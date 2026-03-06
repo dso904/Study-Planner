@@ -34,9 +34,20 @@ const mobileNavItems = [
 
 function MobileBottomNav() {
     const pathname = usePathname();
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const mql = window.matchMedia('(max-width: 768px)');
+        const onChange = () => setIsMobile(mql.matches);
+        onChange();
+        mql.addEventListener('change', onChange);
+        return () => mql.removeEventListener('change', onChange);
+    }, []);
+
+    if (!isMobile) return null;
 
     return (
-        <nav className="mobile-bottom-nav">
+        <nav className="mobile-bottom-nav" style={{ display: 'flex' }}>
             {mobileNavItems.map((item) => {
                 const active = pathname === item.key;
                 return (
