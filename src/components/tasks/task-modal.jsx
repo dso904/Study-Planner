@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 /* ─── Time Spinner Component ─── */
 function TimeSpinner({ value, onChange, label }) {
     const [hours, minutes] = (value || '00:00').split(':').map(Number);
+    const hourRef = useRef(null);
+    const minRef = useRef(null);
 
     const update = (h, m) => {
         onChange(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
@@ -29,14 +31,31 @@ function TimeSpinner({ value, onChange, label }) {
     const incMin = () => update(hours, (minutes + 5) % 60);
     const decMin = () => update(hours, (minutes - 5 + 60) % 60);
 
-    const handleWheel = (e, type) => {
-        e.preventDefault();
-        if (type === 'hour') {
+    // Use native wheel listeners with { passive: false } so preventDefault()
+    // actually blocks the dialog from scrolling when spinning time values
+    useEffect(() => {
+        const hourEl = hourRef.current;
+        const minEl = minRef.current;
+        if (!hourEl || !minEl) return;
+
+        const onHourWheel = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             e.deltaY < 0 ? incHour() : decHour();
-        } else {
+        };
+        const onMinWheel = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             e.deltaY < 0 ? incMin() : decMin();
-        }
-    };
+        };
+
+        hourEl.addEventListener('wheel', onHourWheel, { passive: false });
+        minEl.addEventListener('wheel', onMinWheel, { passive: false });
+        return () => {
+            hourEl.removeEventListener('wheel', onHourWheel);
+            minEl.removeEventListener('wheel', onMinWheel);
+        };
+    });
 
     // UX-H FIX: Allow direct keyboard input for hours and minutes
     // R1-FIX: Handle empty string from backspace — set to 0 so user can retype
@@ -57,7 +76,7 @@ function TimeSpinner({ value, onChange, label }) {
             <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">{label}</Label>
             <div className="flex items-center gap-1 mt-1 rounded-md px-2 py-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 {/* Hours */}
-                <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'hour')}>
+                <div ref={hourRef} className="flex flex-col items-center">
                     <button type="button" onClick={incHour} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
@@ -78,7 +97,7 @@ function TimeSpinner({ value, onChange, label }) {
                 <span className="text-zinc-400 font-bold text-sm select-none">:</span>
 
                 {/* Minutes */}
-                <div className="flex flex-col items-center" onWheel={(e) => handleWheel(e, 'minute')}>
+                <div ref={minRef} className="flex flex-col items-center">
                     <button type="button" onClick={incMin} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
@@ -337,7 +356,7 @@ export default function TaskModal({ open, onClose, task, defaultDate, defaultTim
         // Validate required fields with toast notifications
         const missing = [];
         if (!form.title.trim()) missing.push('Task title');
-        if (!form.subject_id) missing.push('Subject');
+        if (!form.subject_id && form.category !== 'others') missing.push('Subject');
         if (!form.date) missing.push('Date');
         if (!form.start_time) missing.push('Start time');
         if (!form.end_time) missing.push('End time');
