@@ -154,12 +154,23 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
         return () => scrollParent.removeEventListener('scroll', onScroll);
     }, [open]);
 
-    // UX-C FIX: Calculate dropdown position from trigger button viewport rect
-    // so it floats above the modal's overflow boundary instead of being clipped
+    // FIX: Calculate dropdown position relative to the dialog's transform containing block.
+    // CSS transforms (translate-x/y) on the dialog create a new containing block for
+    // position:fixed children, so we must subtract the dialog rect to get local coords.
     const handleOpen = () => {
         if (!open && containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
-            setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+            const dialogEl = containerRef.current.closest('[data-slot="dialog-content"]');
+            if (dialogEl) {
+                const dialogRect = dialogEl.getBoundingClientRect();
+                setDropdownPos({
+                    top: rect.bottom - dialogRect.top + 4,
+                    left: rect.left - dialogRect.left,
+                    width: rect.width,
+                });
+            } else {
+                setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+            }
         }
         setOpen(!open);
     };
