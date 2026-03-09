@@ -27,7 +27,7 @@ function getSpineColor(subjectId, index) {
 }
 
 /* ─── Book Component — spine on shelf with hover tooltip card ─── */
-function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
+function BookSpine({ book, index, onEdit, onDelete, subjectColor, isRightEdge }) {
     const spineColor = getSpineColor(book.subject_id, index);
     const [hovered, setHovered] = useState(false);
     const subject = SUBJECTS.find(s => s.id === book.subject_id);
@@ -140,14 +140,17 @@ function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
             <AnimatePresence>
                 {hovered && (
                     <motion.div
-                        initial={{ opacity: 0, x: -6, scale: 0.92 }}
+                        initial={{ opacity: 0, x: isRightEdge ? 6 : -6, scale: 0.92 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: -6, scale: 0.92 }}
+                        exit={{ opacity: 0, x: isRightEdge ? 6 : -6, scale: 0.92 }}
                         transition={{ duration: 0.18, ease: 'easeOut' }}
                         style={{
                             position: 'absolute',
                             top: '0',
-                            left: `calc(100% + 12px)`,
+                            // R4-FIX: Render tooltip left for rightmost books to prevent off-screen overflow
+                            ...(isRightEdge
+                                ? { right: 'calc(100% + 12px)' }
+                                : { left: 'calc(100% + 12px)' }),
                             minWidth: '200px',
                             maxWidth: '240px',
                             padding: '14px 16px',
@@ -161,14 +164,14 @@ function BookSpine({ book, index, onEdit, onDelete, subjectColor }) {
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Arrow pointing left */}
+                        {/* R4-FIX: Arrow points toward the book (left or right depending on edge) */}
                         <div style={{
-                            position: 'absolute', top: '16px', left: '-6px',
-                            transform: 'rotate(45deg)',
+                            position: 'absolute', top: '16px',
+                            ...(isRightEdge
+                                ? { right: '-6px', transform: 'rotate(45deg)', borderRight: `1.5px solid ${spineColor}40`, borderTop: `1.5px solid ${spineColor}40` }
+                                : { left: '-6px', transform: 'rotate(45deg)', borderLeft: `1.5px solid ${spineColor}40`, borderBottom: `1.5px solid ${spineColor}40` }),
                             width: '10px', height: '10px',
                             background: 'rgba(12,11,38,0.97)',
-                            borderLeft: `1.5px solid ${spineColor}40`,
-                            borderBottom: `1.5px solid ${spineColor}40`,
                         }} />
 
                         {/* Subject badge */}
@@ -274,6 +277,7 @@ function BookshelfRow({ books, onEdit, onDelete, subjectColor, shelfIndex }) {
                             onEdit={onEdit}
                             onDelete={onDelete}
                             subjectColor={subjectColor}
+                            isRightEdge={i >= books.length - 2}
                         />
                     ))}
                 </AnimatePresence>

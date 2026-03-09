@@ -39,11 +39,14 @@ function TimeSpinner({ value, onChange, label }) {
     };
 
     // UX-H FIX: Allow direct keyboard input for hours and minutes
+    // R1-FIX: Handle empty string from backspace — set to 0 so user can retype
     const handleHourInput = (e) => {
+        if (e.target.value === '') { update(0, minutes); return; }
         const val = parseInt(e.target.value, 10);
         if (!isNaN(val) && val >= 0 && val <= 23) update(val, minutes);
     };
     const handleMinInput = (e) => {
+        if (e.target.value === '') { update(hours, 0); return; }
         const val = parseInt(e.target.value, 10);
         if (!isNaN(val) && val >= 0 && val <= 59) update(hours, val);
     };
@@ -139,6 +142,16 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
+    }, [open]);
+
+    // R3-FIX: Close dropdown when modal body scrolls (fixed dropdown would detach)
+    useEffect(() => {
+        if (!open) return;
+        const scrollParent = containerRef.current?.closest('.task-modal-body');
+        if (!scrollParent) return;
+        const onScroll = () => setOpen(false);
+        scrollParent.addEventListener('scroll', onScroll, { passive: true });
+        return () => scrollParent.removeEventListener('scroll', onScroll);
     }, [open]);
 
     // UX-C FIX: Calculate dropdown position from trigger button viewport rect

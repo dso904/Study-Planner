@@ -47,7 +47,7 @@ const priorities = [
 ];
 
 /* ─── Positioned Task Block ─── */
-function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask, chapterName, bookName, isLate }) {
+function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask, chapterName, bookName }) {
   const color = getTaskColor(task.subject_id);
 
   const handlePanelClick = (e) => {
@@ -149,8 +149,8 @@ function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTa
         <ChevronDown size={11} strokeWidth={2.5} />
       </button>
 
-      {/* UX-B: Render panel upward for late-night tasks to avoid grid-bottom clipping */}
-      <div className={`task-bottom-panel ${isExpanded ? 'is-open' : ''} ${isLate ? 'panel-above' : ''}`} onClick={(e) => e.stopPropagation()}>
+      {/* Collapsible bottom panel — slides down from task block */}
+      <div className={`task-bottom-panel ${isExpanded ? 'is-open' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Status row */}
         <div className="panel-row">
           <div className="panel-section-label">STATUS</div>
@@ -322,22 +322,49 @@ export default function WeeklyPlannerPage() {
   };
 
   // UX3-FIX: Detect overlapping tasks and assign column positions for side-by-side rendering
+  // R2-FIX: Per-cluster totalCols — isolated tasks get full width, only overlapping groups share
   const getOverlapLayout = (dayTasks) => {
     if (dayTasks.length <= 1) return new Map(dayTasks.map(t => [t.id, { col: 0, totalCols: 1 }]));
     const offsets = dayTasks.map(t => ({ id: t.id, ...getTaskOffsets(t) }));
     offsets.sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset);
-    const layout = new Map();
-    const columns = []; // each column holds the endOffset of the last placed task
-    for (const t of offsets) {
-      let placed = false;
-      for (let c = 0; c < columns.length; c++) {
-        if (t.startOffset >= columns[c]) { columns[c] = t.endOffset; layout.set(t.id, { col: c, totalCols: 0 }); placed = true; break; }
+
+    // 1. Build clusters of mutually overlapping tasks
+    const clusters = [];
+    let currentCluster = [offsets[0]];
+    let clusterEnd = offsets[0].endOffset;
+
+    for (let i = 1; i < offsets.length; i++) {
+      if (offsets[i].startOffset < clusterEnd) {
+        // Overlaps with current cluster
+        currentCluster.push(offsets[i]);
+        clusterEnd = Math.max(clusterEnd, offsets[i].endOffset);
+      } else {
+        // No overlap — start new cluster
+        clusters.push(currentCluster);
+        currentCluster = [offsets[i]];
+        clusterEnd = offsets[i].endOffset;
       }
-      if (!placed) { layout.set(t.id, { col: columns.length, totalCols: 0 }); columns.push(t.endOffset); }
     }
-    // Set totalCols for each task based on max columns used
-    const totalCols = columns.length;
-    for (const [id, val] of layout) val.totalCols = totalCols;
+    clusters.push(currentCluster);
+
+    // 2. Assign columns within each cluster independently
+    const layout = new Map();
+    for (const cluster of clusters) {
+      const columns = []; // each column holds the endOffset of the last placed task
+      for (const t of cluster) {
+        let placed = false;
+        for (let c = 0; c < columns.length; c++) {
+          if (t.startOffset >= columns[c]) { columns[c] = t.endOffset; layout.set(t.id, { col: c, totalCols: 0 }); placed = true; break; }
+        }
+        if (!placed) { layout.set(t.id, { col: columns.length, totalCols: 0 }); columns.push(t.endOffset); }
+      }
+      // Set totalCols per cluster (not per day)
+      const clusterCols = columns.length;
+      for (const t of cluster) {
+        const entry = layout.get(t.id);
+        if (entry) entry.totalCols = clusterCols;
+      }
+    }
     return layout;
   };
 
@@ -416,9 +443,6 @@ export default function WeeklyPlannerPage() {
             return (<React.Fragment key={day.date}>{dayTasks.map((task) => {
               const pos = getTaskPosition(task);
               const layout = overlapLayout.get(task.id) || { col: 0, totalCols: 1 };
-              // UX-B: Detect late tasks (past hour 20) for upward panel rendering
-              const startHour = parseInt(task.start_time.split(':')[0], 10);
-              const isLate = startHour >= 20;
               // Each day column is (100% - TIME_COL_WIDTH) / 7 wide
               const dayColWidth = `(100% - ${TIME_COL_WIDTH}px) / 7`;
               const taskWidth = `calc((${dayColWidth} - 6px) / ${layout.totalCols})`;
@@ -428,7 +452,6 @@ export default function WeeklyPlannerPage() {
                   key={task.id}
                   task={task}
                   isExpanded={expandedTaskId === task.id}
-                  isLate={isLate}
                   onTogglePanel={handleTogglePanel}
                   onUpdateTask={handleUpdateTask}
                   chapterName={task.chapter_id ? (allChapters.find(c => c.id === task.chapter_id)?.name || '') : ''}

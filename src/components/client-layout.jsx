@@ -15,6 +15,7 @@ import TimerWidget from '@/components/timer/timer-widget';
 import ErrorBoundary from '@/components/error-boundary';
 import LoginPage from '@/components/login-page';
 import { Toaster } from '@/components/ui/sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
     CalendarDays,
     LayoutDashboard,
