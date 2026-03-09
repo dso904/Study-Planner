@@ -39,8 +39,9 @@ export default function BacklogsPage() {
     const [selected, setSelected] = useState(new Set());
 
     const backlogs = useMemo(() => {
+        // H4-FIX: Also include tasks explicitly marked as backlogs (aligns with atoms.js getBacklogs)
         return tasks
-            .filter((t) => t.status !== 'done' && t.status !== 'skipped' && dayjs(t.date).isBefore(dayjs(), 'day'))
+            .filter((t) => t.is_backlog || (t.status !== 'done' && t.status !== 'skipped' && dayjs(t.date).isBefore(dayjs(), 'day')))
             .sort((a, b) => b.date.localeCompare(a.date));
     }, [tasks]);
 

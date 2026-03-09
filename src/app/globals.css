@@ -620,6 +620,20 @@ body::after {
   pointer-events: auto;
 }
 
+/* UX-B: Render panel upward for tasks near grid bottom */
+.task-bottom-panel.panel-above {
+  top: auto;
+  bottom: 100%;
+  border-radius: 10px 10px 0 0;
+  border-top: 1px solid rgba(139, 92, 246, 0.35);
+  border-bottom: 2px solid rgba(139, 92, 246, 0.55);
+  transform: translateY(4px);
+}
+
+.task-bottom-panel.panel-above.is-open {
+  transform: translateY(0);
+}
+
 /* Panel row (status or priority group) — horizontal */
 .panel-row {
   display: flex;

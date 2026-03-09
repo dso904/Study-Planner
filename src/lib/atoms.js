@@ -63,6 +63,16 @@ const globalDebounce = {
     books: {}
 };
 
+// M10-FIX: Cancel all pending debounced API calls (called before data reload to prevent stale pushes)
+function clearAllDebounce() {
+    for (const table of Object.keys(globalDebounce)) {
+        for (const id of Object.keys(globalDebounce[table])) {
+            clearTimeout(globalDebounce[table][id]);
+            delete globalDebounce[table][id];
+        }
+    }
+}
+
 // ─── Task Actions Hook (Cloud-Only) ──────────────────────────
 export function useTaskActions() {
     const [tasks, setTasks] = useAtom(tasksAtom);
@@ -72,19 +82,31 @@ export function useTaskActions() {
 
     const addTask = useCallback((task) => {
         const record = { ...task, updated_at: task.updated_at || new Date().toISOString() };
-        setTasks((prev) => [...prev, record]);
+        // H5-FIX: Prevent duplicate task IDs (guards against double-clicks or stale replays)
+        setTasks((prev) => prev.some((t) => t.id === record.id) ? prev : [...prev, record]);
         apiUpsert('tasks', record);
     }, [setTasks]);
 
-    const updateTask = useCallback((id, updates) => {
-        const updated = { ...updates, updated_at: new Date().toISOString() };
-        setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...updated } : t));
-        // Read latest from ref to push complete record to cloud
+    // H2-FIX: Support function updater pattern: updateTask(id, (currentTask) => updates)
+    // This ensures the latest task state is read at update time, preventing stale overwrites.
+    const updateTask = useCallback((id, updatesOrFn) => {
+        // UX-F FIX: Capture the fully-merged record at SET time (inside React's batch),
+        // so the debounced cloud push always has the latest truth even if React hasn't
+        // flushed tasksRef.current yet.
+        let mergedRecord = null;
+        setTasks((prev) => prev.map((t) => {
+            if (t.id !== id) return t;
+            const updates = typeof updatesOrFn === 'function' ? updatesOrFn(t) : updatesOrFn;
+            mergedRecord = { ...t, ...updates, updated_at: new Date().toISOString() };
+            return mergedRecord;
+        }));
+        // Debounce the cloud push — uses the captured mergedRecord from above
         if (globalDebounce.tasks[id]) clearTimeout(globalDebounce.tasks[id]);
 
         globalDebounce.tasks[id] = setTimeout(() => {
-            const current = tasksRef.current.find((t) => t.id === id);
-            if (current) apiUpsert('tasks', current);
+            // Use captured record if available, fallback to ref
+            const record = mergedRecord || tasksRef.current.find((t) => t.id === id);
+            if (record) apiUpsert('tasks', record);
             delete globalDebounce.tasks[id];
         }, 500);
     }, [setTasks]);
@@ -267,6 +289,8 @@ export function useWeekNavigation() {
 
 // ─── Load from Server (Cloud-Only) ───────────────────────────
 export async function loadFromServer(setTasks, setChapters, setNotes, setBooks) {
+    // M10-FIX: Cancel pending debounced writes before overwriting atoms with fresh server data
+    clearAllDebounce();
     try {
         const [serverTasks, serverChapters, serverNotes, serverBooks] = await Promise.all([
             apiFetch('tasks', { daysBack: 180 }),

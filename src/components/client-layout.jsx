@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Provider, useAtom, useAtomValue } from 'jotai';
@@ -34,15 +34,8 @@ const mobileNavItems = [
 
 function MobileBottomNav() {
     const pathname = usePathname();
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        const mql = window.matchMedia('(max-width: 768px)');
-        const onChange = () => setIsMobile(mql.matches);
-        onChange();
-        mql.addEventListener('change', onChange);
-        return () => mql.removeEventListener('change', onChange);
-    }, []);
+    // M2-FIX: Use shared hook instead of inline duplicate logic
+    const isMobile = useIsMobile();
 
     if (!isMobile) return null;
 
@@ -65,18 +58,7 @@ function MobileBottomNav() {
     );
 }
 
-/* ─── Hook to detect mobile viewport ─── */
-function useIsMobile(breakpoint = 768) {
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
-        const onChange = () => setIsMobile(mql.matches);
-        onChange();
-        mql.addEventListener('change', onChange);
-        return () => mql.removeEventListener('change', onChange);
-    }, [breakpoint]);
-    return isMobile;
-}
+/* M1-FIX: useIsMobile moved to @/hooks/use-mobile */
 
 function AppShell({ children }) {
     const collapsed = useAtomValue(sidebarCollapsedAtom);

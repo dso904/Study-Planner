@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# L5-FIX: Next.js telemetry ID — machine-specific, should not be in version control
+telemetry-id

@@ -24,17 +24,19 @@ export default function StatusBar() {
             return acc;
         }, 0);
 
-    // M10-FIX: Compute streak — consecutive days with at least 1 done task
+    // M8-FIX: Pre-index dates with completed tasks into a Set for O(1) lookups (was O(n²))
     const streak = (() => {
+        const doneDates = new Set();
+        for (const t of tasks) {
+            if (t.status === 'done' && t.date) doneDates.add(t.date);
+        }
         let count = 0;
         let checkDate = dayjs();
         // If no tasks done today yet, start checking from yesterday
-        const todayHasDone = todayTasks.some((t) => t.status === 'done');
-        if (!todayHasDone) checkDate = checkDate.subtract(1, 'day');
+        if (!doneDates.has(today)) checkDate = checkDate.subtract(1, 'day');
         while (true) {
             const dateStr = checkDate.format('YYYY-MM-DD');
-            const hasDone = tasks.some((t) => t.date === dateStr && t.status === 'done');
-            if (!hasDone) break;
+            if (!doneDates.has(dateStr)) break;
             count++;
             checkDate = checkDate.subtract(1, 'day');
         }

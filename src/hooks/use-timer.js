@@ -123,9 +123,12 @@ export function useTimer() {
                         playCompletionSound();
                         const task = linkedTaskRef.current;
                         if (task && target > 0) {
-                            updateTaskRef.current(task.id, {
-                                time_spent: (task.time_spent || 0) + target,
-                            });
+                            // H2-FIX: Use task id to update via updateTask, which reads latest
+                            // state from tasksRef.current. Add `target` seconds (the full timer
+                            // duration) rather than reading stale task.time_spent from the ref.
+                            updateTaskRef.current(task.id, (currentTask) => ({
+                                time_spent: (currentTask.time_spent || 0) + target,
+                            }));
                         }
                     } else {
                         requestRef.current = requestAnimationFrame(animate);
@@ -145,9 +148,10 @@ export function useTimer() {
                             lastTaskUpdateRef.current += 60;
                         }
                         if (minutesAccumulated > 0) {
-                            updateTaskRef.current(task.id, {
-                                time_spent: (task.time_spent || 0) + minutesAccumulated,
-                            });
+                            // UX5-FIX: Use function updater to read latest time_spent (same as H2)
+                            updateTaskRef.current(task.id, (currentTask) => ({
+                                time_spent: (currentTask.time_spent || 0) + minutesAccumulated,
+                            }));
                         }
                     }
 

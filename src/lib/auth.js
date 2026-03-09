@@ -34,12 +34,13 @@ export async function verifyCredentials(username, password) {
 // ─── Cookie Helpers ──────────────────────────────────────────
 // The session cookie is used by server-side API routes to verify auth.
 // SameSite=Strict ensures it's only sent to same-origin requests.
+// C4-FIX: Added Secure flag — cookie only sent over HTTPS (ignored on localhost dev)
 function setSessionCookie() {
-    document.cookie = `${SESSION_KEY}=${SESSION_TOKEN}; path=/; SameSite=Strict`;
+    document.cookie = `${SESSION_KEY}=${SESSION_TOKEN}; path=/; SameSite=Strict; Secure`;
 }
 
 function clearSessionCookie() {
-    document.cookie = `${SESSION_KEY}=; path=/; SameSite=Strict; max-age=0`;
+    document.cookie = `${SESSION_KEY}=; path=/; SameSite=Strict; Secure; max-age=0`;
 }
 
 // ─── Session Management ──────────────────────────────────────

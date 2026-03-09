@@ -16,8 +16,8 @@ const statusConfig = {
     skipped: { label: '⏭️ Skipped', color: '#64748b', icon: SkipForward },
 };
 
+// M9-FIX: Removed orphaned 'critical' priority (task-modal only offers high/medium/low)
 const priorityDot = {
-    critical: '#f43f5e',
     high: '#fb923c',
     medium: '#facc15',
     low: '#34d399',
@@ -66,7 +66,11 @@ export default function PrintModal({ open, onClose }) {
         if (!printContent) return;
 
         const printWindow = window.open('', '_blank', 'width=800,height=900');
-        if (!printWindow) return;
+        // L7-FIX: Show user feedback if popup is blocked instead of silently failing
+        if (!printWindow) {
+            alert('Popup blocked! Please allow popups for this site to use the print feature.');
+            return;
+        }
 
         printWindow.document.write(`
 <!DOCTYPE html>
@@ -303,8 +307,9 @@ export default function PrintModal({ open, onClose }) {
 
     const totalTasks = dayTasks.length;
     const doneTasks = dayTasks.filter((t) => t.status === 'done').length;
+    // H1-FIX: Clamp to 0 in case end_time < start_time (overnight tasks)
     const totalHours = dayTasks.reduce((acc, t) => {
-        if (t.start_time && t.end_time) return acc + dayjs(t.end_time, 'HH:mm').diff(dayjs(t.start_time, 'HH:mm'), 'minute') / 60;
+        if (t.start_time && t.end_time) return acc + Math.max(0, dayjs(t.end_time, 'HH:mm').diff(dayjs(t.start_time, 'HH:mm'), 'minute') / 60);
         return acc;
     }, 0);
 

@@ -38,6 +38,8 @@ export function useTimerActions() {
     const [isRunning, setIsRunning] = useAtom(timerRunningAtom);
     const [linkedTask, setLinkedTask] = useAtom(timerLinkedTaskAtom);
     const [preset, setPreset] = useAtom(timerPresetAtom);
+    // H7-FIX: Read customSeconds atom (was previously missing, causing ReferenceError)
+    const [customSeconds, setCustomSeconds] = useAtom(timerCustomSecondsAtom);
 
     const openWidget = () => setIsOpen(true);
     const closeWidget = () => {
@@ -47,14 +49,18 @@ export function useTimerActions() {
     const toggleWidget = () => setIsOpen((prev) => !prev);
     const toggleMinimize = () => setIsMinimized((prev) => !prev);
 
+    // H7-FIX: For custom presets, use the seconds from the preset object (set by timer-widget)
+    // and persist to the customSeconds atom. Falls back to atom value if preset has no seconds.
     const selectPreset = (newPreset) => {
         setPreset(newPreset);
         if (newPreset.id !== 'preset-custom') {
             setTarget(newPreset.seconds);
             setSeconds(newPreset.seconds);
         } else {
-            setTarget(customSeconds);
-            setSeconds(customSeconds);
+            const secs = newPreset.seconds || customSeconds;
+            setCustomSeconds(secs);
+            setTarget(secs);
+            setSeconds(secs);
         }
         setIsRunning(false);
     };

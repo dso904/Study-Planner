@@ -3,17 +3,9 @@
 import { useMemo } from 'react';
 import CircularProgress from './circular-progress';
 
-function formatLapTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    const ms = Math.floor((seconds % 1) * 100);
-    if (mins > 0) {
-        return `${mins}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
-    }
-    return `${secs}.${String(ms).padStart(2, '0')}`;
-}
-
-export default function StopwatchDisplay({ seconds, isRunning, formatTime, color }) {
+// M4-FIX: Removed dead formatLapTime function (was never called anywhere)
+// M5-FIX: Removed unused formatTime prop — component formats time internally
+export default function StopwatchDisplay({ seconds, isRunning, color }) {
     const progress = useMemo(() => {
         return (seconds % 60) / 60 * 100;
     }, [seconds]);

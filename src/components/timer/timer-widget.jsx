@@ -123,6 +123,18 @@ export default function TimerWidget() {
         }
     }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove]);
 
+    // UX2-FIX: Clamp widget position when window is resized so it can't go off-screen
+    useEffect(() => {
+        const handleResize = () => {
+            setPosition((prev) => ({
+                x: Math.max(0, Math.min(prev.x, window.innerWidth - WIDGET_WIDTH - WIDGET_PADDING)),
+                y: Math.max(0, Math.min(prev.y, window.innerHeight - (isMinimized ? WIDGET_HEIGHT_MINIMIZED : 200) - WIDGET_PADDING)),
+            }));
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [setPosition, isMinimized]);
+
     const handlePresetClick = (p) => {
         if (p.id === 'preset-custom') {
             setShowCustomInput(true);

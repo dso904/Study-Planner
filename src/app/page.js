@@ -47,7 +47,7 @@ const priorities = [
 ];
 
 /* ─── Positioned Task Block ─── */
-function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask, chapterName, bookName }) {
+function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask, chapterName, bookName, isLate }) {
   const color = getTaskColor(task.subject_id);
 
   const handlePanelClick = (e) => {
@@ -130,6 +130,12 @@ function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTa
         {chapterName && <div className="task-block-chapter" style={{ color: `${color.border}cc`, fontSize: '9px', fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', marginTop: '1px', textShadow: `0 0 6px ${color.glow}` }}>📑 {chapterName}</div>}
         {bookName && <div className="task-block-chapter" style={{ color: `${color.border}aa`, fontSize: '9px', fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', marginTop: '1px', textShadow: `0 0 6px ${color.glow}` }}>📕 {bookName}</div>}
         <div className="task-block-time" style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, textShadow: '0 0 6px rgba(139,92,246,0.3)' }}>{formatTime(task.start_time)}–{formatTime(task.end_time)}</div>
+        {/* UX4-FIX: Show accumulated time_spent from timer tracking */}
+        {task.time_spent > 0 && (
+          <div className="task-block-chapter" style={{ color: '#22d3ee', fontSize: '9px', fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', marginTop: '1px', textShadow: '0 0 6px rgba(34,211,238,0.3)' }}>
+            ⏱ {Math.floor(task.time_spent / 60) > 0 ? `${Math.floor(task.time_spent / 60)}h ` : ''}{task.time_spent % 60}m
+          </div>
+        )}
         <div className="task-block-category" style={{ color: 'rgba(255,255,255,0.65)' }}>{task.category}</div>
       </div>
 
@@ -143,8 +149,8 @@ function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTa
         <ChevronDown size={11} strokeWidth={2.5} />
       </button>
 
-      {/* Collapsible bottom panel — slides up from bottom */}
-      <div className={`task-bottom-panel ${isExpanded ? 'is-open' : ''}`} onClick={(e) => e.stopPropagation()}>
+      {/* UX-B: Render panel upward for late-night tasks to avoid grid-bottom clipping */}
+      <div className={`task-bottom-panel ${isExpanded ? 'is-open' : ''} ${isLate ? 'panel-above' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Status row */}
         <div className="panel-row">
           <div className="panel-section-label">STATUS</div>
@@ -292,29 +298,47 @@ export default function WeeklyPlannerPage() {
 
   const isThisWeek = isCurrentWeek(currentWeekStart);
 
-  // Calculate task block position in pixels
-  const getTaskPosition = (task, dayIndex) => {
+  // Parse task time into fractional offset from dayStartHour
+  const getTaskOffsets = (task) => {
     const startParts = task.start_time.split(':');
     const endParts = (task.end_time || task.start_time).split(':');
     const startHour = parseInt(startParts[0], 10);
     const startMin = parseInt(startParts[1] || '0', 10);
     const endHour = parseInt(endParts[0], 10);
     const endMin = parseInt(endParts[1] || '0', 10);
-
     let startOffset = (startHour - SCHEDULE.dayStartHour) + startMin / 60;
     let endOffset = (endHour - SCHEDULE.dayStartHour) + endMin / 60;
+    if (endOffset < startOffset) endOffset += 24;
+    return { startOffset, endOffset };
+  };
 
-    // Handle overnight tasks that span past midnight
-    if (endOffset < startOffset) {
-      endOffset += 24;
-    }
-
-    const durationSlots = Math.max(endOffset - startOffset, 0.5); // minimum half-slot
-
+  // Calculate task block position in pixels
+  const getTaskPosition = (task) => {
+    const { startOffset, endOffset } = getTaskOffsets(task);
+    const durationSlots = Math.max(endOffset - startOffset, 0.5);
     const top = HEADER_HEIGHT + startOffset * SLOT_HEIGHT;
-    const height = durationSlots * SLOT_HEIGHT - 2; // small gap
-
+    const height = durationSlots * SLOT_HEIGHT - 2;
     return { top, height };
+  };
+
+  // UX3-FIX: Detect overlapping tasks and assign column positions for side-by-side rendering
+  const getOverlapLayout = (dayTasks) => {
+    if (dayTasks.length <= 1) return new Map(dayTasks.map(t => [t.id, { col: 0, totalCols: 1 }]));
+    const offsets = dayTasks.map(t => ({ id: t.id, ...getTaskOffsets(t) }));
+    offsets.sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset);
+    const layout = new Map();
+    const columns = []; // each column holds the endOffset of the last placed task
+    for (const t of offsets) {
+      let placed = false;
+      for (let c = 0; c < columns.length; c++) {
+        if (t.startOffset >= columns[c]) { columns[c] = t.endOffset; layout.set(t.id, { col: c, totalCols: 0 }); placed = true; break; }
+      }
+      if (!placed) { layout.set(t.id, { col: columns.length, totalCols: 0 }); columns.push(t.endOffset); }
+    }
+    // Set totalCols for each task based on max columns used
+    const totalCols = columns.length;
+    for (const [id, val] of layout) val.totalCols = totalCols;
+    return layout;
   };
 
   return (
@@ -387,17 +411,24 @@ export default function WeeklyPlannerPage() {
           {weekDays.map((day, dayIndex) => {
             const dayTasks = tasksByDate.get(day.date) || [];
             if (dayTasks.length === 0) return null;
-            // M9-FIX: Wrap in Fragment with key to avoid React reconciliation issues
+            // UX3-FIX: Compute overlap layout for side-by-side rendering
+            const overlapLayout = getOverlapLayout(dayTasks);
             return (<React.Fragment key={day.date}>{dayTasks.map((task) => {
-              const pos = getTaskPosition(task, dayIndex);
+              const pos = getTaskPosition(task);
+              const layout = overlapLayout.get(task.id) || { col: 0, totalCols: 1 };
+              // UX-B: Detect late tasks (past hour 20) for upward panel rendering
+              const startHour = parseInt(task.start_time.split(':')[0], 10);
+              const isLate = startHour >= 20;
               // Each day column is (100% - TIME_COL_WIDTH) / 7 wide
-              const colWidthPercent = `calc((100% - ${TIME_COL_WIDTH}px) / 7)`;
-              const colLeft = `calc(${TIME_COL_WIDTH}px + ${dayIndex} * (100% - ${TIME_COL_WIDTH}px) / 7 + 3px)`;
+              const dayColWidth = `(100% - ${TIME_COL_WIDTH}px) / 7`;
+              const taskWidth = `calc((${dayColWidth} - 6px) / ${layout.totalCols})`;
+              const colLeft = `calc(${TIME_COL_WIDTH}px + ${dayIndex} * ${dayColWidth} + 3px + ${layout.col} * (${dayColWidth} - 6px) / ${layout.totalCols})`;
               return (
                 <TaskBlock
                   key={task.id}
                   task={task}
                   isExpanded={expandedTaskId === task.id}
+                  isLate={isLate}
                   onTogglePanel={handleTogglePanel}
                   onUpdateTask={handleUpdateTask}
                   chapterName={task.chapter_id ? (allChapters.find(c => c.id === task.chapter_id)?.name || '') : ''}
@@ -407,7 +438,7 @@ export default function WeeklyPlannerPage() {
                     top: `${pos.top}px`,
                     height: `${pos.height}px`,
                     left: colLeft,
-                    width: `calc(${colWidthPercent} - 6px)`,
+                    width: taskWidth,
                     zIndex: expandedTaskId === task.id ? 50 : 5,
                     overflow: 'visible',
                   }}

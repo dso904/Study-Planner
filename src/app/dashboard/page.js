@@ -27,10 +27,12 @@ const tooltipStyle = {
     boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
 };
 
+// UX-E FIX: Handle overnight tasks (e.g. 23:00→01:00 = 2 hours, not 0)
 function getHours(task) {
     if (!task.start_time || !task.end_time) return 0;
-    // M5-FIX: Clamp to 0 in case end_time < start_time
-    return Math.max(0, dayjs(task.end_time, 'HH:mm').diff(dayjs(task.start_time, 'HH:mm'), 'minute') / 60);
+    let diff = dayjs(task.end_time, 'HH:mm').diff(dayjs(task.start_time, 'HH:mm'), 'minute');
+    if (diff < 0) diff += 24 * 60; // crosses midnight — add 24 hours
+    return diff / 60;
 }
 
 /* ─── Glowing Stat Card ─── */
@@ -129,8 +131,8 @@ export default function DashboardPage() {
     const subjects = SUBJECTS;
     const hydrationStatus = useAtomValue(hydrationStatusAtom);
 
-    /* ── Today ── */
-    // M6-FIX: Regular variable, not memoized-once, so it updates past midnight
+    // M7-FIX: Intentionally NOT memoized — recalculates on every render so it
+    // updates past midnight without requiring a page refresh or manual invalidation.
     const today = dayjs().format('YYYY-MM-DD');
     const { todayDone, todayTotal } = useMemo(() => {
         const todayTasks = tasks.filter((t) => t.date === today);
@@ -218,6 +220,29 @@ export default function DashboardPage() {
     // Show skeleton until data is loaded from Supabase to avoid "0 stats" flash
     if (hydrationStatus === 'idle' || hydrationStatus === 'loading') {
         return <DashboardSkeleton />;
+    }
+
+    // UX1-FIX: Show error state with retry instead of getting stuck on skeleton forever
+    if (hydrationStatus === 'error') {
+        return (
+            <PageTransition>
+                <div className="flex flex-col items-center justify-center py-24 gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                        <AlertTriangle size={28} className="text-red-400" />
+                    </div>
+                    <h2 className="text-lg font-bold text-zinc-200">Failed to load data</h2>
+                    <p className="text-sm text-zinc-400 text-center max-w-xs">
+                        Could not connect to the server. Check your internet connection and try again.
+                    </p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-2 px-5 py-2 rounded-lg text-sm font-semibold bg-violet-500/15 text-violet-300 hover:bg-violet-500/25 border border-violet-500/20 transition-all"
+                    >
+                        Retry Connection
+                    </button>
+                </div>
+            </PageTransition>
+        );
     }
 
     return (

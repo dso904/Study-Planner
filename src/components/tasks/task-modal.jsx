@@ -38,6 +38,17 @@ function TimeSpinner({ value, onChange, label }) {
         }
     };
 
+    // UX-H FIX: Allow direct keyboard input for hours and minutes
+    const handleHourInput = (e) => {
+        const val = parseInt(e.target.value, 10);
+        if (!isNaN(val) && val >= 0 && val <= 23) update(val, minutes);
+    };
+    const handleMinInput = (e) => {
+        const val = parseInt(e.target.value, 10);
+        if (!isNaN(val) && val >= 0 && val <= 59) update(hours, val);
+    };
+    const selectOnFocus = (e) => e.target.select();
+
     return (
         <div>
             <Label className="text-zinc-300 mono text-[11px] uppercase tracking-wider">{label}</Label>
@@ -47,9 +58,15 @@ function TimeSpinner({ value, onChange, label }) {
                     <button type="button" onClick={incHour} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
-                    <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
-                        {String(hours).padStart(2, '0')}
-                    </span>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        value={String(hours).padStart(2, '0')}
+                        onChange={handleHourInput}
+                        onFocus={selectOnFocus}
+                        className="text-sm font-semibold text-zinc-200 mono w-6 text-center bg-transparent outline-none border-none appearance-none select-all"
+                        maxLength={2}
+                    />
                     <button type="button" onClick={decHour} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronDown size={14} />
                     </button>
@@ -62,9 +79,15 @@ function TimeSpinner({ value, onChange, label }) {
                     <button type="button" onClick={incMin} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronUp size={14} />
                     </button>
-                    <span className="text-sm font-semibold text-zinc-200 mono w-6 text-center select-none">
-                        {String(minutes).padStart(2, '0')}
-                    </span>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        value={String(minutes).padStart(2, '0')}
+                        onChange={handleMinInput}
+                        onFocus={selectOnFocus}
+                        className="text-sm font-semibold text-zinc-200 mono w-6 text-center bg-transparent outline-none border-none appearance-none select-all"
+                        maxLength={2}
+                    />
                     <button type="button" onClick={decMin} className="text-zinc-400 hover:text-rose-400 transition-colors p-1.5 rounded hover:bg-white/5">
                         <ChevronDown size={14} />
                     </button>
@@ -105,6 +128,7 @@ const statuses = [
 function ModularSelect({ value, onChange, options, placeholder, label, accentColor = '#8b5cf6' }) {
     const [open, setOpen] = useState(false);
     const containerRef = useRef(null);
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
     const current = options.find((o) => o.value === value);
 
     // Close on outside click
@@ -117,13 +141,23 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
         return () => document.removeEventListener('mousedown', handler);
     }, [open]);
 
+    // UX-C FIX: Calculate dropdown position from trigger button viewport rect
+    // so it floats above the modal's overflow boundary instead of being clipped
+    const handleOpen = () => {
+        if (!open && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+        }
+        setOpen(!open);
+    };
+
     const displayColor = current?.color || '#64748b';
 
     return (
         <div ref={containerRef} className="relative">
             <button
                 type="button"
-                onClick={() => setOpen(!open)}
+                onClick={handleOpen}
                 className="w-full mt-1 flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all duration-200"
                 style={{
                     background: current ? `${displayColor}08` : 'rgba(255,255,255,0.03)',
@@ -153,8 +187,12 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -4, scale: 0.97 }}
                         transition={{ duration: 0.12 }}
-                        className="absolute left-0 right-0 top-full mt-1 p-1.5 rounded-xl max-h-[200px] overflow-auto custom-scrollbar"
+                        className="p-1.5 rounded-xl max-h-[200px] overflow-auto custom-scrollbar"
                         style={{
+                            position: 'fixed',
+                            top: dropdownPos.top,
+                            left: dropdownPos.left,
+                            width: dropdownPos.width,
                             zIndex: 9999,
                             background: 'rgba(15,14,42,0.98)',
                             border: `1px solid ${accentColor}30`,
@@ -196,10 +234,11 @@ function ModularSelect({ value, onChange, options, placeholder, label, accentCol
     );
 }
 
+// H8-FIX: Default status is 'pending' (not '') to avoid false backlog detection
 const initialForm = {
     title: '', subject_id: '', subject_name: '', chapter_id: '',
     book_id: '',
-    category: 'lecture', priority: 'medium', status: '',
+    category: 'lecture', priority: 'medium', status: 'pending',
     date: '', start_time: '', end_time: '', notes: '',
 };
 

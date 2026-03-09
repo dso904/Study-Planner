@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+// M1-FIX: Import shared hook instead of defining locally
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { currentWeekStartAtom, notesPanelOpenAtom, notesAtom } from '@/lib/atoms';
 import { timerOpenAtom, timerRunningAtom, timerSecondsAtom, timerModeAtom } from '@/lib/timer-atoms';
@@ -17,20 +19,11 @@ const viewTitles = {
     '/dashboard': 'Dashboard',
     '/subjects': 'Subjects & Chapters',
     '/backlogs': 'Backlogs',
+    // M3-FIX: Added missing Library entry
+    '/library': 'Library',
 };
 
-/* Hook to detect mobile viewport */
-function useIsMobile(breakpoint = 768) {
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
-        const onChange = () => setIsMobile(mql.matches);
-        onChange();
-        mql.addEventListener('change', onChange);
-        return () => mql.removeEventListener('change', onChange);
-    }, [breakpoint]);
-    return isMobile;
-}
+/* M1-FIX: useIsMobile moved to @/hooks/use-mobile */
 
 export default function Topbar() {
     const pathname = usePathname();
@@ -54,9 +47,10 @@ export default function Topbar() {
         window.history.replaceState({ loggedOut: true }, '', window.location.href);
     };
 
+    // H6-FIX: Math.floor the secs to avoid displaying fractional seconds from rAF
     const formatTimerTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
+        const secs = Math.floor(seconds % 60);
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     };
 

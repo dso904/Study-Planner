@@ -8,7 +8,8 @@ export default function TimerDisplay({ seconds, target, isRunning, formatTime, c
     const timeString = formatTime(seconds);
 
     const minutes = Math.floor(seconds / 60);
-    const percentage = target > 0 ? Math.round((seconds / target) * 100) : 0;
+    // M6-FIX: percentage now shows % completed (matches ring direction), not % remaining
+    const percentage = target > 0 ? Math.round(((target - seconds) / target) * 100) : 0;
 
     return (
         <CircularProgress progress={progress} color={color} isRunning={isRunning}>

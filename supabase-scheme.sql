@@ -161,4 +161,10 @@ BEGIN
 END $$;
 
 -- ─── Migration: Add book_id to tasks ─────────────
--- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS book_id TEXT DEFAULT '';
+-- L3-FIX: Uncommented — this migration MUST be run if the books/library feature is active.
+-- Without this column, task-modal book_id field will be silently dropped on upsert.
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS book_id TEXT DEFAULT '';
+
+-- L4-NOTE: subject_id is TEXT (not a foreign key) by design — subjects are hardcoded in
+-- the frontend SUBJECTS array (atoms.js). If subjects are ever made dynamic, add a
+-- subjects table and convert this to a proper FK.

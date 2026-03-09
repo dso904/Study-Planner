@@ -63,7 +63,9 @@ export async function POST(request, { params }) {
 
     try {
         const body = await request.json();
-        if (!body || typeof body !== 'object') return errorResponse('Invalid request body');
+        // H3-FIX: Reject arrays, non-objects, and payloads missing required 'id'
+        if (!body || typeof body !== 'object' || Array.isArray(body)) return errorResponse('Invalid request body');
+        if (!body.id || typeof body.id !== 'string') return errorResponse('Missing or invalid id field');
 
         const { error } = await supabase.from(table).upsert(body, { onConflict: 'id' });
         if (error) return errorResponse(error.message, 500);
