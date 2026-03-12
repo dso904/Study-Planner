@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -145,26 +145,26 @@
   }
 }
 
-/* ─── Background depth: Gradient Mesh + Atmospheric Washes ─── */
+/* â”€â”€â”€ Background depth: Gradient Mesh + Atmospheric Washes â”€â”€â”€ */
 body {
   background-color: oklch(0.16 0.014 280);
   background-image:
-    /* Primary violet nebula — top center */
+    /* Primary violet nebula â€” top center */
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139, 92, 246, 0.22), transparent 60%),
-    /* Cyan wash — bottom-right */
+    /* Cyan wash â€” bottom-right */
     radial-gradient(ellipse 60% 45% at 95% 90%, rgba(34, 211, 238, 0.14), transparent 55%),
-    /* Pink wash — bottom-left */
+    /* Pink wash â€” bottom-left */
     radial-gradient(ellipse 55% 50% at 5% 85%, rgba(244, 114, 182, 0.12), transparent 50%),
-    /* Warm amber accent — mid-right */
+    /* Warm amber accent â€” mid-right */
     radial-gradient(ellipse 40% 35% at 85% 40%, rgba(251, 146, 60, 0.09), transparent 50%),
-    /* Deep indigo pool — center */
+    /* Deep indigo pool â€” center */
     radial-gradient(ellipse 70% 60% at 50% 50%, rgba(99, 102, 241, 0.08), transparent 60%),
-    /* Emerald glow — top-left */
+    /* Emerald glow â€” top-left */
     radial-gradient(ellipse 45% 40% at 10% 15%, rgba(52, 211, 153, 0.07), transparent 50%);
   background-attachment: fixed;
 }
 
-/* ─── Noise + dot-grid texture ─── */
+/* â”€â”€â”€ Noise + dot-grid texture â”€â”€â”€ */
 body::before {
   content: '';
   position: fixed;
@@ -180,7 +180,7 @@ body::before {
   background-size: 256px 256px;
 }
 
-/* ─── Floating gradient mesh blobs (animated) ─── */
+/* â”€â”€â”€ Floating gradient mesh blobs (animated) â”€â”€â”€ */
 body::after {
   content: '';
   position: fixed;
@@ -191,11 +191,11 @@ body::after {
   pointer-events: none;
   z-index: -1;
   background:
-    /* Soft violet blob — drifts top-left */
+    /* Soft violet blob â€” drifts top-left */
     radial-gradient(circle 600px at 20% 20%, rgba(139, 92, 246, 0.12), transparent 70%),
-    /* Warm rose blob — drifts center-right */
+    /* Warm rose blob â€” drifts center-right */
     radial-gradient(circle 500px at 75% 35%, rgba(244, 63, 94, 0.09), transparent 70%),
-    /* Cool teal blob — drifts bottom-center */
+    /* Cool teal blob â€” drifts bottom-center */
     radial-gradient(circle 550px at 50% 80%, rgba(34, 211, 238, 0.10), transparent 70%),
     /* Dot grid pattern */
     radial-gradient(circle 1px at center, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
@@ -217,7 +217,7 @@ body::after {
   }
 }
 
-/* ─── Custom Scrollbar ─── */
+/* â”€â”€â”€ Custom Scrollbar â”€â”€â”€ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -236,12 +236,12 @@ body::after {
   background: oklch(1 0 0 / 28%);
 }
 
-/* ─── Mono Text ─── */
+/* â”€â”€â”€ Mono Text â”€â”€â”€ */
 .mono {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* ─── Neon Glow Text ─── */
+/* â”€â”€â”€ Neon Glow Text â”€â”€â”€ */
 .neon-text {
   background: linear-gradient(135deg, #f43f5e, #fb923c, #facc15);
   -webkit-background-clip: text;
@@ -249,7 +249,7 @@ body::after {
   background-clip: text;
 }
 
-/* ─── Weekly Grid ─── */
+/* â”€â”€â”€ Weekly Grid â”€â”€â”€ */
 .week-grid-container {
   overflow: auto;
   border-radius: 10px;
@@ -371,7 +371,7 @@ body::after {
   opacity: 0.4;
 }
 
-/* ─── Task Block (absolutely positioned for multi-slot spanning) ─── */
+/* â”€â”€â”€ Task Block (absolutely positioned for multi-slot spanning) â”€â”€â”€ */
 .task-block-abs {
   padding: 8px 10px;
   border-radius: 8px;
@@ -392,7 +392,7 @@ body::after {
   z-index: 10;
 }
 
-/* ─── Priority Dot (top-right corner) ─── */
+/* â”€â”€â”€ Priority Dot (top-right corner) â”€â”€â”€ */
 .task-block-priority {
   position: absolute;
   top: 5px;
@@ -405,14 +405,14 @@ body::after {
   pointer-events: none;
 }
 
-/* ─── Status Visual Treatments ─── */
+/* â”€â”€â”€ Status Visual Treatments â”€â”€â”€ */
 
-/* Pending — normal look, subtle left glow */
+/* Pending â€” normal look, subtle left glow */
 .task-block-abs.pending {
   border-left-width: 3px;
 }
 
-/* In Progress — animated pulsing border glow + shimmer bar */
+/* In Progress â€” animated pulsing border glow + shimmer bar */
 .task-block-abs.in_progress {
   border-left-width: 4px;
   border-left-color: #22d3ee !important;
@@ -457,7 +457,7 @@ body::after {
   }
 }
 
-/* Done — vivid emerald accent (NO dimming) */
+/* Done â€” vivid emerald accent (NO dimming) */
 .task-block-abs.done {
   border-left-color: #34d399 !important;
   border-left-width: 4px;
@@ -484,7 +484,7 @@ body::after {
   text-decoration-thickness: 2px;
 }
 
-/* Skipped — slate-blue accent with subtle stripes (NO dimming) */
+/* Skipped â€” slate-blue accent with subtle stripes (NO dimming) */
 .task-block-abs.skipped {
   border-left-color: #64748b !important;
   border-left-width: 4px;
@@ -515,7 +515,7 @@ body::after {
   text-decoration-thickness: 2px;
 }
 
-/* Missed — red-tinted overlay + red border */
+/* Missed â€” red-tinted overlay + red border */
 .task-block-abs.missed {
   border-left-color: #f43f5e !important;
   box-shadow: inset 0 0 20px rgba(244, 63, 94, 0.15), 0 0 6px rgba(244, 63, 94, 0.2);
@@ -530,7 +530,7 @@ body::after {
   pointer-events: none;
 }
 
-/* ─── Bottom expand tab ─── */
+/* â”€â”€â”€ Bottom expand tab â”€â”€â”€ */
 .task-bottom-tab {
   position: absolute;
   bottom: 0;
@@ -579,7 +579,7 @@ body::after {
   transition: transform 0.2s ease;
 }
 
-/* ─── Task block content wrapper ─── */
+/* â”€â”€â”€ Task block content wrapper â”€â”€â”€ */
 .task-block-content {
   position: relative;
   z-index: 1;
@@ -587,7 +587,7 @@ body::after {
 
 /* panel-open no longer dims content since panel is a dropdown below */
 
-/* ─── Bottom expand panel (dropdown below block) ─── */
+/* â”€â”€â”€ Bottom expand panel (dropdown below block) â”€â”€â”€ */
 .task-bottom-panel {
   position: absolute;
   left: -1px;
@@ -622,7 +622,7 @@ body::after {
   pointer-events: auto;
 }
 
-/* Panel row (status or priority group) — horizontal */
+/* Panel row (status or priority group) â€” horizontal */
 .panel-row {
   display: flex;
   flex-direction: row;
@@ -648,7 +648,7 @@ body::after {
   gap: 4px;
 }
 
-/* Individual chip — Compact */
+/* Individual chip â€” Compact */
 .panel-chip {
   width: 30px;
   height: 30px;
@@ -699,7 +699,7 @@ body::after {
   display: none;
 }
 
-/* ─── Today Column – Dual Saber Traveling Beams ─── */
+/* â”€â”€â”€ Today Column â€“ Dual Saber Traveling Beams â”€â”€â”€ */
 .today-column-glow {
   border-radius: 10px;
   overflow: hidden;
@@ -714,7 +714,7 @@ body::after {
   pointer-events: none;
 }
 
-/* ── Cyan beam (clockwise) ── */
+/* â”€â”€ Cyan beam (clockwise) â”€â”€ */
 .saber-cyan::before {
   content: '';
   position: absolute;
@@ -758,7 +758,7 @@ body::after {
   animation: borderSpin 4s linear infinite;
 }
 
-/* ── Magenta beam (counter-clockwise) ── */
+/* â”€â”€ Magenta beam (counter-clockwise) â”€â”€ */
 .saber-magenta::before {
   content: '';
   position: absolute;
@@ -802,7 +802,7 @@ body::after {
   animation: borderSpin 4s linear infinite reverse;
 }
 
-/* ─── Current Time Line ─── */
+/* â”€â”€â”€ Current Time Line â”€â”€â”€ */
 .current-time-line {
   position: absolute;
   left: 70px;
@@ -825,7 +825,7 @@ body::after {
   background: #f43f5e;
 }
 
-/* ─── Sidebar Multi-Color Animated Border ─── */
+/* â”€â”€â”€ Sidebar Multi-Color Animated Border â”€â”€â”€ */
 @property --angle {
   syntax: '<angle>';
   initial-value: 0deg;
@@ -924,7 +924,7 @@ body::after {
   z-index: 0;
 }
 
-/* ─── Futuristic Button ─── */
+/* â”€â”€â”€ Futuristic Button â”€â”€â”€ */
 .futuristic-btn {
   position: relative;
   display: inline-flex;
@@ -965,7 +965,7 @@ body::after {
   transform: scale(1.04);
 }
 
-/* ─── Global Focus‐Visible Ring (keyboard nav) ─── */
+/* â”€â”€â”€ Global Focusâ€Visible Ring (keyboard nav) â”€â”€â”€ */
 *:focus-visible {
   outline: 2px solid rgba(139, 92, 246, 0.6);
   outline-offset: 2px;
@@ -1001,7 +1001,7 @@ body::after {
   pointer-events: none;
 }
 
-/* ─── Subject Colors ─── */
+/* â”€â”€â”€ Subject Colors â”€â”€â”€ */
 .subject-physics {
   --subject-color: #facc15;
 }
@@ -1018,7 +1018,7 @@ body::after {
   --subject-color: #34d399;
 }
 
-/* ─── Print ─── */
+/* â”€â”€â”€ Print â”€â”€â”€ */
 @media print {
   .no-print {
     display: none !important;
@@ -1031,784 +1031,9 @@ body::after {
 
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   TIMER WIDGET — Floating Timer/Stopwatch
-   ═══════════════════════════════════════════════════════════════ */
-
-.timer-widget {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-  border-radius: 16px;
-  overflow: hidden;
-  background: oklch(0.25 0.03 260 / 99%);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow:
-    0 24px 64px -12px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(34, 211, 238, 0.3),
-    0 0 48px rgba(34, 211, 238, 0.2);
-  transition: box-shadow 0.3s ease, height 0.3s ease;
-}
-
-.timer-widget:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 32px rgba(34, 211, 238, 0.12);
-}
-
-.timer-widget.dragging {
-  cursor: grabbing;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 211, 238, 0.2);
-  transform: scale(1.02);
-}
-
-.timer-widget.minimized {
-  height: 56px !important;
-}
-
-.timer-widget-drag-handle {
-  cursor: grab;
-  user-select: none;
-}
-
-/* ─── Timer Widget Header ─── */
-.timer-widget-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.timer-widget-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.timer-widget-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.timer-widget-modes {
-  display: flex;
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  padding: 3px;
-}
-
-.timer-mode-btn {
-  padding: 5px 12px;
-  font-size: 11px;
-  font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: #a1a1aa;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.timer-mode-btn:hover {
-  color: #d4d4d8;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.timer-mode-btn.active {
-  background: color-mix(in srgb, var(--mode-color, #22d3ee) 20%, transparent);
-  color: var(--mode-color, #22d3ee);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--mode-color, #22d3ee) 15%, transparent);
-}
-
-.timer-widget-mini-time {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.timer-widget-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.timer-running-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #22d3ee;
-  animation: timerPulse 1.5s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
-}
-
-@keyframes timerPulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.6;
-    transform: scale(0.85);
-  }
-}
-
-.timer-action-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: none;
-  background: rgba(255, 255, 255, 0.05);
-  color: #a1a1aa;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-
-.timer-action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #d4d4d8;
-}
-
-.timer-action-btn.close:hover {
-  background: rgba(244, 63, 94, 0.15);
-  color: #f43f5e;
-}
-
-.timer-widget-mini-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-}
-
-.timer-mini-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: #a1a1aa;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.timer-mini-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #d4d4d8;
-}
-
-.timer-mini-btn.running {
-  background: color-mix(in srgb, var(--mini-color, #22d3ee) 20%, transparent);
-  border-color: color-mix(in srgb, var(--mini-color, #22d3ee) 30%, transparent);
-  color: var(--mini-color, #22d3ee);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--mini-color, #22d3ee) 20%, transparent);
-}
-
-/* ─── Timer Widget Body ─── */
-.timer-widget-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.timer-display-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-/* ─── Circular Progress Ring ─── */
-.timer-ring-container {
-  position: relative;
-  width: 200px;
-  height: 200px;
-}
-
-.timer-ring-svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(0deg);
-}
-
-.timer-ring-bg {
-  transition: stroke 0.3s ease;
-}
-
-.timer-ring-progress {
-  transition: stroke-dashoffset 0.3s ease;
-}
-
-.timer-ring-content {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.timer-display-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.timer-time {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 32px;
-  font-weight: 800;
-  color: #f4f4f5;
-  letter-spacing: 0.02em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.timer-hours {
-  font-size: 24px;
-  font-weight: 600;
-  color: #a1a1aa;
-}
-
-.timer-separator {
-  opacity: 0.5;
-}
-
-.timer-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.timer-percentage {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 700;
-  color: #d4d4d8;
-}
-
-.timer-remaining,
-.timer-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 500;
-  color: #a1a1aa;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* ─── Stopwatch Laps ─── */
-.stopwatch-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.laps-container {
-  width: 100%;
-  max-height: 120px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.laps-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.laps-title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #71717a;
-}
-
-.laps-count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  color: #22d3ee;
-  background: rgba(34, 211, 238, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.laps-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px 0;
-}
-
-.laps-empty {
-  text-align: center;
-  padding: 12px;
-  font-size: 11px;
-  color: #71717a;
-}
-
-.lap-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin: 2px 8px;
-  background: rgba(255, 255, 255, 0.02);
-  transition: background 0.15s ease;
-}
-
-.lap-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.lap-item.lap-best {
-  background: rgba(34, 211, 153, 0.08);
-}
-
-.lap-item.lap-best .lap-time {
-  color: #34d399;
-}
-
-.lap-item.lap-worst {
-  background: rgba(244, 63, 94, 0.06);
-}
-
-.lap-item.lap-worst .lap-time {
-  color: #f43f5e;
-}
-
-.lap-number {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  color: #a1a1aa;
-}
-
-.lap-time {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 700;
-  color: #d4d4d8;
-}
-
-/* ─── Timer Presets ─── */
-.timer-presets {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.timer-preset-btn {
-  padding: 6px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  color: #d4d4d8;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.timer-preset-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #d4d4d8;
-}
-
-.timer-preset-btn.active {
-  background: color-mix(in srgb, var(--preset-color, #22d3ee) 15%, transparent);
-  border-color: color-mix(in srgb, var(--preset-color, #22d3ee) 30%, transparent);
-  color: var(--preset-color, #22d3ee);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--preset-color, #22d3ee) 12%, transparent);
-}
-
-/* ─── Custom Timer Input ─── */
-.timer-custom-input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  border: 1px solid rgba(251, 146, 60, 0.2);
-}
-
-.timer-custom-input input {
-  width: 60px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 600;
-  color: #f4f4f5;
-  text-align: center;
-  outline: none;
-}
-
-.timer-custom-input input:focus {
-  border-color: rgba(251, 146, 60, 0.4);
-  box-shadow: 0 0 12px rgba(251, 146, 60, 0.15);
-}
-
-.timer-custom-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: #a1a1aa;
-}
-
-.timer-custom-set {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: none;
-  background: rgba(251, 146, 60, 0.15);
-  color: #fb923c;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.timer-custom-set:hover {
-  background: rgba(251, 146, 60, 0.25);
-  box-shadow: 0 0 12px rgba(251, 146, 60, 0.2);
-}
-
-/* ─── Timer Controls ─── */
-.timer-widget-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.timer-ctrl-btn {
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.timer-ctrl-btn.primary {
-  width: 56px;
-  height: 56px;
-  background: color-mix(in srgb, var(--ctrl-color, #22d3ee) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
-  color: var(--ctrl-color, #22d3ee);
-}
-
-.timer-ctrl-btn.primary:hover {
-  background: color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
-  border-color: color-mix(in srgb, var(--ctrl-color, #22d3ee) 40%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--ctrl-color, #22d3ee) 20%, transparent);
-  transform: scale(1.05);
-}
-
-.timer-ctrl-btn.primary.running {
-  background: color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
-  box-shadow: 0 0 24px color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
-  animation: controlPulse 2s ease-in-out infinite;
-}
-
-@keyframes controlPulse {
-
-  0%,
-  100% {
-    box-shadow: 0 0 24px color-mix(in srgb, var(--ctrl-color, #22d3ee) 25%, transparent);
-  }
-
-  50% {
-    box-shadow: 0 0 32px color-mix(in srgb, var(--ctrl-color, #22d3ee) 35%, transparent);
-  }
-}
-
-.timer-ctrl-btn.secondary {
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #a1a1aa;
-}
-
-.timer-ctrl-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #d4d4d8;
-}
-
-.timer-ctrl-btn.secondary:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.timer-ctrl-btn.secondary.clear {
-  width: auto;
-  padding: 0 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-/* ─── Task Linker ─── */
-.timer-task-linker {
-  width: 100%;
-  padding: 0 4px;
-}
-
-.task-linker {
-  position: relative;
-  width: 100%;
-}
-
-.task-linker-trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.task-linker-trigger:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.task-linker-placeholder {
-  font-size: 12px;
-  color: #a1a1aa;
-}
-
-.task-linker-chevron {
-  color: #71717a;
-  transition: transform 0.2s ease;
-}
-
-.task-linker-chevron.open {
-  transform: rotate(180deg);
-}
-
-.task-linker-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  border-radius: 12px;
-  background: oklch(0.16 0.014 280 / 98%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  z-index: 1000;
-}
-
-.task-linker-search {
-  padding: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.task-linker-search input {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #f4f4f5;
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.task-linker-search input:focus {
-  border-color: rgba(34, 211, 238, 0.3);
-  box-shadow: 0 0 12px rgba(34, 211, 238, 0.1);
-}
-
-.task-linker-search input::placeholder {
-  color: #52525b;
-}
-
-.task-linker-list {
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 4px;
-}
-
-.task-linker-empty {
-  padding: 16px;
-  text-align: center;
-  font-size: 11px;
-  color: #71717a;
-}
-
-.task-linker-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s ease;
-}
-
-.task-linker-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.task-linker-item-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.task-linker-item-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-linker-item-title {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #d4d4d8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.task-linker-item-meta {
-  display: block;
-  font-size: 10px;
-  color: #71717a;
-  margin-top: 2px;
-}
-
-/* ─── Linked Task Display ─── */
-.task-linker-linked {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(34, 211, 238, 0.15);
-  background: rgba(34, 211, 238, 0.06);
-}
-
-.task-linker-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-}
-
-.task-linker-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.task-linker-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.task-linker-title {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #d4d4d8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.task-linker-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  color: #a1a1aa;
-  margin-top: 2px;
-}
-
-.task-linker-time {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: #22d3ee;
-}
-
-.task-linker-unlink {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  border: none;
-  background: rgba(244, 63, 94, 0.1);
-  color: #f43f5e;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-}
-
-.task-linker-unlink:hover {
-  background: rgba(244, 63, 94, 0.2);
-}
-
-/* ═══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    LOGIN PAGE
-   ═══════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .login-page {
   position: fixed;
@@ -1826,7 +1051,7 @@ body::after {
     oklch(0.15 0.018 280);
 }
 
-/* ── Glass card ── */
+/* â”€â”€ Glass card â”€â”€ */
 .login-card {
   position: relative;
   width: 100%;
@@ -1846,7 +1071,7 @@ body::after {
 }
 
 
-/* ── Header ── */
+/* â”€â”€ Header â”€â”€ */
 .login-header {
   display: flex;
   flex-direction: column;
@@ -1906,7 +1131,7 @@ body::after {
   text-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
 }
 
-/* ── Form ── */
+/* â”€â”€ Form â”€â”€ */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -1990,7 +1215,7 @@ body::after {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* ── Error ── */
+/* â”€â”€ Error â”€â”€ */
 .login-error {
   display: flex;
   align-items: center;
@@ -2004,7 +1229,7 @@ body::after {
   font-weight: 600;
 }
 
-/* ── Submit button ── */
+/* â”€â”€ Submit button â”€â”€ */
 .login-submit {
   position: relative;
   width: 100%;
@@ -2065,7 +1290,7 @@ body::after {
   }
 }
 
-/* ── Spinner ── */
+/* â”€â”€ Spinner â”€â”€ */
 .login-spinner {
   width: 20px;
   height: 20px;
@@ -2081,7 +1306,7 @@ body::after {
   }
 }
 
-/* ── Footer ── */
+/* â”€â”€ Footer â”€â”€ */
 .login-footer {
   display: flex;
   align-items: center;
@@ -2095,7 +1320,7 @@ body::after {
   letter-spacing: 0.08em;
 }
 
-/* ── Shake animation ── */
+/* â”€â”€ Shake animation â”€â”€ */
 .login-shake {
   animation: loginShake 0.5s ease-in-out;
 }
@@ -2132,7 +1357,7 @@ body::after {
   }
 }
 
-/* ── Sidebar logout button ── */
+/* â”€â”€ Sidebar logout button â”€â”€ */
 .sidebar-logout-btn {
   display: flex;
   align-items: center;
@@ -2163,13 +1388,13 @@ body::after {
   padding: 10px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   MOBILE RESPONSIVENESS — ≤768px
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   MOBILE RESPONSIVENESS â€” â‰¤768px
    All mobile-specific overrides are contained here.
    Desktop layout is completely untouched.
-   ═══════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ─── Mobile Bottom Navigation Bar ─── */
+/* â”€â”€â”€ Mobile Bottom Navigation Bar â”€â”€â”€ */
 .mobile-bottom-nav {
   display: none;
   /* Hidden on desktop */
@@ -2177,7 +1402,7 @@ body::after {
 
 @media (max-width: 768px) {
 
-  /* ─── Mobile Bottom Navigation ─── */
+  /* â”€â”€â”€ Mobile Bottom Navigation â”€â”€â”€ */
   .mobile-bottom-nav {
     display: flex !important;
     position: fixed;
@@ -2236,12 +1461,12 @@ body::after {
     line-height: 1;
   }
 
-  /* ─── Hide Desktop Sidebar ─── */
+  /* â”€â”€â”€ Hide Desktop Sidebar â”€â”€â”€ */
   .app-shell>nav {
     display: none !important;
   }
 
-  /* ─── Main Content Area ─── */
+  /* â”€â”€â”€ Main Content Area â”€â”€â”€ */
   .app-content {
     margin-left: 0 !important;
   }
@@ -2251,12 +1476,12 @@ body::after {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* ─── Hide Desktop Status Bar on Mobile ─── */
+  /* â”€â”€â”€ Hide Desktop Status Bar on Mobile â”€â”€â”€ */
   .app-shell .status-bar {
     display: none;
   }
 
-  /* ─── Topbar — Compact on Mobile ─── */
+  /* â”€â”€â”€ Topbar â€” Compact on Mobile â”€â”€â”€ */
   .app-content>header {
     height: 52px !important;
     min-height: 52px !important;
@@ -2268,7 +1493,7 @@ body::after {
     font-size: 15px !important;
   }
 
-  /* ─── Weekly Planner Grid ─── */
+  /* â”€â”€â”€ Weekly Planner Grid â”€â”€â”€ */
   .week-grid {
     min-width: 700px;
   }
@@ -2340,7 +1565,7 @@ body::after {
     gap: 6px;
   }
 
-  /* ─── Task Modal — Full-Screen on Mobile ─── */
+  /* â”€â”€â”€ Task Modal â€” Full-Screen on Mobile â”€â”€â”€ */
   [role="dialog"],
   [data-radix-dialog-content],
   .task-modal-content {
@@ -2353,7 +1578,7 @@ body::after {
     border: none !important;
   }
 
-  /* Dialog overlay — ensure it covers everything */
+  /* Dialog overlay â€” ensure it covers everything */
   [data-radix-dialog-overlay] {
     z-index: 9500 !important;
   }
@@ -2366,7 +1591,7 @@ body::after {
     flex-direction: column !important;
   }
 
-  /* Task modal body — scrollable middle section */
+  /* Task modal body â€” scrollable middle section */
   .task-modal-body {
     flex: 1 1 auto !important;
     overflow-y: auto !important;
@@ -2374,7 +1599,7 @@ body::after {
     min-height: 0 !important;
   }
 
-  /* Task modal footer — always pinned at bottom */
+  /* Task modal footer â€” always pinned at bottom */
   .task-modal-footer {
     flex-shrink: 0 !important;
     padding-top: 12px !important;
@@ -2382,7 +1607,7 @@ body::after {
     padding-bottom: env(safe-area-inset-bottom, 8px) !important;
   }
 
-  /* Multi-column form grids → single column */
+  /* Multi-column form grids â†’ single column */
   [data-radix-dialog-content] .grid-cols-2,
   [data-radix-dialog-content] .grid.grid-cols-2 {
     grid-template-columns: 1fr !important;
@@ -2393,7 +1618,7 @@ body::after {
     grid-template-columns: 1fr 1fr !important;
   }
 
-  /* ─── Timer Widget — Mobile Optimized ─── */
+  /* â”€â”€â”€ Timer Widget â€” Mobile Optimized â”€â”€â”€ */
   .timer-widget {
     bottom: 72px !important;
     right: 8px !important;
@@ -2456,7 +1681,7 @@ body::after {
     max-height: 200px;
   }
 
-  /* ─── Quick Notes — Full Width Slide-Up ─── */
+  /* â”€â”€â”€ Quick Notes â€” Full Width Slide-Up â”€â”€â”€ */
   .quick-notes-panel {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -2469,7 +1694,7 @@ body::after {
     border-bottom: none !important;
   }
 
-  /* ─── Print Modal — Full Screen ─── */
+  /* â”€â”€â”€ Print Modal â€” Full Screen â”€â”€â”€ */
   .print-modal-content,
   [data-radix-dialog-content].print-modal {
     max-width: 100vw !important;
@@ -2481,7 +1706,7 @@ body::after {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* ─── Subjects Page — Stack Quadrants ─── */
+  /* â”€â”€â”€ Subjects Page â€” Stack Quadrants â”€â”€â”€ */
   .subjects-grid,
   .grid.grid-cols-2.grid-rows-2 {
     grid-template-columns: 1fr !important;
@@ -2490,7 +1715,7 @@ body::after {
     gap: 12px !important;
   }
 
-  /* ─── Dashboard — Ensure Cards Stack ─── */
+  /* â”€â”€â”€ Dashboard â€” Ensure Cards Stack â”€â”€â”€ */
   .grid.grid-cols-2.md\:grid-cols-3.lg\:grid-cols-6 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
@@ -2499,7 +1724,7 @@ body::after {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  /* ─── Library — Responsive Tabs & Shelves ─── */
+  /* â”€â”€â”€ Library â€” Responsive Tabs & Shelves â”€â”€â”€ */
   .library-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -2510,7 +1735,7 @@ body::after {
     display: none;
   }
 
-  /* ─── Backlogs — Touch-Friendly Items ─── */
+  /* â”€â”€â”€ Backlogs â€” Touch-Friendly Items â”€â”€â”€ */
   .backlog-item {
     padding: 12px !important;
   }
@@ -2519,7 +1744,7 @@ body::after {
     gap: 6px;
   }
 
-  /* ─── Login Page — Mobile Optimization ─── */
+  /* â”€â”€â”€ Login Page â€” Mobile Optimization â”€â”€â”€ */
   .login-card {
     max-width: calc(100vw - 32px) !important;
     padding: 28px 20px 24px !important;
@@ -2549,26 +1774,26 @@ body::after {
     font-size: 18px;
   }
 
-  /* ─── Futuristic Buttons — Touch Targets ─── */
+  /* â”€â”€â”€ Futuristic Buttons â€” Touch Targets â”€â”€â”€ */
   .futuristic-btn {
     padding: 10px 20px;
     font-size: 10px;
     min-height: 42px;
   }
 
-  /* ─── Scrollbar — Thinner on Mobile ─── */
+  /* â”€â”€â”€ Scrollbar â€” Thinner on Mobile â”€â”€â”€ */
   ::-webkit-scrollbar {
     width: 3px;
     height: 3px;
   }
 
-  /* ─── Body Background — Optimize for Mobile Performance ─── */
+  /* â”€â”€â”€ Body Background â€” Optimize for Mobile Performance â”€â”€â”€ */
   body::after {
     animation: none;
     /* Disable expensive mesh drift animation on mobile */
   }
 
-  /* ─── General Touch Improvements ─── */
+  /* â”€â”€â”€ General Touch Improvements â”€â”€â”€ */
   button,
   a,
   [role="button"] {
@@ -2582,7 +1807,7 @@ body::after {
     font-size: 16px !important;
   }
 
-  /* ─── Tooltip — Hide on Mobile (no hover) ─── */
+  /* â”€â”€â”€ Tooltip â€” Hide on Mobile (no hover) â”€â”€â”€ */
   [data-radix-popper-content-wrapper] {
     display: none !important;
   }

@@ -46,8 +46,8 @@ const priorities = [
   { value: 'low', label: 'Low', emoji: '🟢', color: '#34d399' },
 ];
 
-/* ─── Positioned Task Block ─── */
-function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask, chapterName, bookName }) {
+/* ─── Positioned Task Block (memoized) ─── */
+const TaskBlock = React.memo(function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTask, chapterName, bookName }) {
   const color = getTaskColor(task.subject_id);
 
   const handlePanelClick = (e) => {
@@ -130,12 +130,6 @@ function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTa
         {chapterName && <div className="task-block-chapter" style={{ color: `${color.border}cc`, fontSize: '9px', fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', marginTop: '1px', textShadow: `0 0 6px ${color.glow}` }}>📑 {chapterName}</div>}
         {bookName && <div className="task-block-chapter" style={{ color: `${color.border}aa`, fontSize: '9px', fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', marginTop: '1px', textShadow: `0 0 6px ${color.glow}` }}>📕 {bookName}</div>}
         <div className="task-block-time" style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, textShadow: '0 0 6px rgba(139,92,246,0.3)' }}>{formatTime(task.start_time)}–{formatTime(task.end_time)}</div>
-        {/* UX4-FIX: Show accumulated time_spent from timer tracking */}
-        {task.time_spent > 0 && (
-          <div className="task-block-chapter" style={{ color: '#22d3ee', fontSize: '9px', fontWeight: 700, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', marginTop: '1px', textShadow: '0 0 6px rgba(34,211,238,0.3)' }}>
-            ⏱ {Math.floor(task.time_spent / 60) > 0 ? `${Math.floor(task.time_spent / 60)}h ` : ''}{task.time_spent % 60}m
-          </div>
-        )}
         <div className="task-block-category" style={{ color: 'rgba(255,255,255,0.65)' }}>{task.category}</div>
       </div>
 
@@ -200,10 +194,10 @@ function TaskBlock({ task, style, onClick, isExpanded, onTogglePanel, onUpdateTa
       </div>
     </div>
   );
-}
+});
 
-/* ─── Time Slot Cell ─── */
-function TimeSlotCell({ isToday, onClick }) {
+/* ─── Time Slot Cell (memoized) ─── */
+const TimeSlotCell = React.memo(function TimeSlotCell({ isToday, onClick }) {
   return (
     <div
       className={`time-slot-cell ${isToday ? 'today' : ''}`}
@@ -214,12 +208,15 @@ function TimeSlotCell({ isToday, onClick }) {
       </div>
     </div>
   );
-}
+});
 
 /* ─── Constants ─── */
 const SLOT_HEIGHT = 120; // matches .time-slot-cell min-height
 const HEADER_HEIGHT = 58; // approximate height of the header row
 const TIME_COL_WIDTH = 70; // width of the time label column
+
+/* ─── Virtualization constants ─── */
+const VIRTUALIZE_BUFFER = 2; // extra slots above/below viewport
 
 export default function WeeklyPlannerPage() {
   const { currentWeekStart, goToPreviousWeek, goToNextWeek, goToThisWeek } = useWeekNavigation();
@@ -233,6 +230,9 @@ export default function WeeklyPlannerPage() {
   const [timePosition, setTimePosition] = useState(null);
   const [expandedTaskId, setExpandedTaskId] = useState(null);
   const gridRef = useRef(null);
+  const containerRef = useRef(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(800);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -243,8 +243,42 @@ export default function WeeklyPlannerPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Scroll handler for virtualization (throttled via rAF)
+  const scrollRafRef = useRef(null);
+  const handleContainerScroll = useCallback(() => {
+    if (scrollRafRef.current) return;
+    scrollRafRef.current = requestAnimationFrame(() => {
+      const el = containerRef.current;
+      if (el) {
+        setScrollTop(el.scrollTop);
+        setContainerHeight(el.clientHeight);
+      }
+      scrollRafRef.current = null;
+    });
+  }, []);
+
+  // Observe container size on mount
+  useEffect(() => {
+    const el = containerRef.current;
+    if (el) setContainerHeight(el.clientHeight);
+  }, []);
+
   const weekDays = useMemo(() => getWeekDays(currentWeekStart), [currentWeekStart]);
   const timeSlots = useMemo(() => getTimeSlots(SCHEDULE.dayStartHour, SCHEDULE.dayEndHour, 60), []);
+
+  // Pre-index chapters and books for O(1) lookup
+  const chapterMap = useMemo(() => new Map(allChapters.map(c => [c.id, c])), [allChapters]);
+  const bookMap = useMemo(() => new Map(allBooks.map(b => [b.id, b])), [allBooks]);
+
+  // Compute visible slot range for virtualization
+  const { startSlot, endSlot } = useMemo(() => {
+    const firstVisible = Math.floor(scrollTop / SLOT_HEIGHT);
+    const lastVisible = Math.ceil((scrollTop + containerHeight) / SLOT_HEIGHT);
+    return {
+      startSlot: Math.max(0, firstVisible - VIRTUALIZE_BUFFER),
+      endSlot: Math.min(timeSlots.length - 1, lastVisible + VIRTUALIZE_BUFFER),
+    };
+  }, [scrollTop, containerHeight, timeSlots.length]);
 
   // Group tasks by date for overlay rendering
   const tasksByDate = useMemo(() => {
@@ -404,7 +438,7 @@ export default function WeeklyPlannerPage() {
       </div>
 
       {/* Grid */}
-      <div className="week-grid-container">
+      <div className="week-grid-container" ref={containerRef} onScroll={handleContainerScroll}>
         <div className="week-grid" ref={gridRef} style={{ position: 'relative' }}>
           {/* Header */}
           <div className="week-grid-header">
@@ -420,8 +454,12 @@ export default function WeeklyPlannerPage() {
             ))}
           </div>
 
-          {/* Time rows (empty cells for the grid lines) */}
-          {timeSlots.map((slot) => (
+          {/* Virtualized time rows — spacer before */}
+          {startSlot > 0 && (
+            <div style={{ height: startSlot * SLOT_HEIGHT }} />
+          )}
+          {/* Visible time rows */}
+          {timeSlots.slice(startSlot, endSlot + 1).map((slot) => (
             <div key={slot.time} className="week-grid-header">
               <div className="time-label-cell">{slot.label}</div>
               {weekDays.map((day) => (
@@ -433,6 +471,10 @@ export default function WeeklyPlannerPage() {
               ))}
             </div>
           ))}
+          {/* Spacer after */}
+          {endSlot < timeSlots.length - 1 && (
+            <div style={{ height: (timeSlots.length - 1 - endSlot) * SLOT_HEIGHT }} />
+          )}
 
           {/* Task overlay layer — absolutely positioned task blocks */}
           {weekDays.map((day, dayIndex) => {
@@ -454,8 +496,8 @@ export default function WeeklyPlannerPage() {
                   isExpanded={expandedTaskId === task.id}
                   onTogglePanel={handleTogglePanel}
                   onUpdateTask={handleUpdateTask}
-                  chapterName={task.chapter_id ? (allChapters.find(c => c.id === task.chapter_id)?.name || '') : ''}
-                  bookName={task.book_id ? (allBooks.find(b => b.id === task.book_id)?.title || '') : ''}
+                  chapterName={task.chapter_id ? (chapterMap.get(task.chapter_id)?.name || '') : ''}
+                  bookName={task.book_id ? (bookMap.get(task.book_id)?.title || '') : ''}
                   style={{
                     position: 'absolute',
                     top: `${pos.top}px`,

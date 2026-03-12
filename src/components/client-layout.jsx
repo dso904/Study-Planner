@@ -11,7 +11,7 @@ import Topbar from '@/components/layout/topbar';
 import StatusBar from '@/components/layout/status-bar';
 import StoreHydrator from '@/components/store-hydrator';
 import QuickNotes from '@/components/quick-notes/quick-notes';
-import TimerWidget from '@/components/timer/timer-widget';
+
 import ErrorBoundary from '@/components/error-boundary';
 import LoginPage from '@/components/login-page';
 import { Toaster } from '@/components/ui/sonner';
@@ -87,8 +87,6 @@ function AppShell({ children }) {
             </div>
             {/* Quick Notes overlay — accessible from any page */}
             <QuickNotes />
-            {/* Timer Widget — floating timer/stopwatch */}
-            <TimerWidget />
             {/* Mobile bottom nav — visible only on mobile via CSS */}
             <MobileBottomNav />
         </div>

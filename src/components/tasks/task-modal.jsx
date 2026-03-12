@@ -55,7 +55,7 @@ function TimeSpinner({ value, onChange, label }) {
             hourEl.removeEventListener('wheel', onHourWheel);
             minEl.removeEventListener('wheel', onMinWheel);
         };
-    });
+    }, [hours, minutes]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // UX-H FIX: Allow direct keyboard input for hours and minutes
     // R1-FIX: Handle empty string from backspace — set to 0 so user can retype

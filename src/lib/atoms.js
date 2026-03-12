@@ -2,7 +2,7 @@
 
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
-import { timerLinkedTaskAtom } from './timer-atoms';
+
 import { useRef, useEffect, useCallback } from 'react';
 import { apiFetch, apiUpsert, apiDelete } from './api';
 import dayjs from 'dayjs';
@@ -76,7 +76,7 @@ function clearAllDebounce() {
 // ─── Task Actions Hook (Cloud-Only) ──────────────────────────
 export function useTaskActions() {
     const [tasks, setTasks] = useAtom(tasksAtom);
-    const [linkedTask, setLinkedTask] = useAtom(timerLinkedTaskAtom);
+
     const tasksRef = useRef(tasks);
     useEffect(() => { tasksRef.current = tasks; }, [tasks]);
 
@@ -113,11 +113,8 @@ export function useTaskActions() {
 
     const deleteTask = useCallback((id) => {
         setTasks((prev) => prev.filter((t) => t.id !== id));
-        if (linkedTask && linkedTask.id === id) {
-            setLinkedTask(null);
-        }
         apiDelete('tasks', id);
-    }, [setTasks, linkedTask, setLinkedTask]);
+    }, [setTasks]);
 
     const getTasksForDate = useCallback((date) => {
         const dateStr = dayjs(date).format('YYYY-MM-DD');

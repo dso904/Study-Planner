@@ -1,20 +1,31 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, lazy, Suspense } from 'react';
 import { useAtomValue } from 'jotai';
 import { tasksAtom, chaptersAtom, SUBJECTS, hydrationStatusAtom } from '@/lib/atoms';
 import { dayjs } from '@/lib/dates';
 import { Badge } from '@/components/ui/badge';
-import {
-    BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip,
-    ResponsiveContainer, Cell, PieChart, Pie,
-} from 'recharts';
+
+// Lazy-load Recharts to defer ~120KB of JS until Dashboard is visited
+const LazyRecharts = lazy(() =>
+    import('recharts').then((mod) => ({
+        default: ({ children }) => children(mod),
+    }))
+);
+
 import {
     CheckCheck, Clock, AlertTriangle, TrendingUp, Target, BarChart3,
     Inbox, Sparkles, BookOpen,
 } from 'lucide-react';
 import PageTransition from '@/components/layout/page-transition';
 import { motion } from 'framer-motion';
+
+/* Chart skeleton shown while Recharts loads */
+function ChartSkeleton({ height = 180 }) {
+    return (
+        <div className="animate-pulse rounded-lg" style={{ height, background: 'rgba(139,92,246,0.04)' }} />
+    );
+}
 
 const chartColors = ['#8b5cf6', '#22d3ee', '#f472b6', '#fb923c', '#34d399', '#facc15', '#f43f5e'];
 const tooltipStyle = {
@@ -274,14 +285,20 @@ export default function DashboardPage() {
 
                 {/* Daily Study Hours — full width */}
                 <GlowPanel title="📊 Daily Study Hours (14 days)" color="#8b5cf6" delay={0.18}>
-                    <ResponsiveContainer width="100%" height={180}>
-                        <BarChart data={dailyData} barCategoryGap="15%">
-                            <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-                            <YAxis hide />
-                            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
-                            <Bar dataKey="hours" fill="#8b5cf6" radius={[5, 5, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <Suspense fallback={<ChartSkeleton />}>
+                        <LazyRecharts>
+                            {({ ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip }) => (
+                                <ResponsiveContainer width="100%" height={180}>
+                                    <BarChart data={dailyData} barCategoryGap="15%">
+                                        <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                                        <YAxis hide />
+                                        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
+                                        <Bar dataKey="hours" fill="#8b5cf6" radius={[5, 5, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
+                        </LazyRecharts>
+                    </Suspense>
                 </GlowPanel>
 
                 {/* Weekly Progress + Hours by Subject — 2 col */}
@@ -308,42 +325,60 @@ export default function DashboardPage() {
                     </GlowPanel>
 
                     <GlowPanel title="Hours by Subject" color="#22d3ee" delay={0.25}>
-                        <ResponsiveContainer width="100%" height={180}>
-                            <BarChart data={chartData} barCategoryGap="20%">
-                                <XAxis dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-                                <YAxis hide />
-                                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
-                                <Bar dataKey="hours" radius={[6, 6, 0, 0]}>{chartData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <Suspense fallback={<ChartSkeleton />}>
+                            <LazyRecharts>
+                                {({ ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell }) => (
+                                    <ResponsiveContainer width="100%" height={180}>
+                                        <BarChart data={chartData} barCategoryGap="20%">
+                                            <XAxis dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                                            <YAxis hide />
+                                            <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(139,92,246,0.06)' }} />
+                                            <Bar dataKey="hours" radius={[6, 6, 0, 0]}>{chartData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </LazyRecharts>
+                        </Suspense>
                     </GlowPanel>
                 </div>
 
                 {/* Weekly Trend + Category Breakdown — 2 col */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <GlowPanel title="📈 Weekly Trend" color="#22d3ee" delay={0.28}>
-                        <ResponsiveContainer width="100%" height={180}>
-                            <LineChart data={weeklyData}>
-                                <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-                                <YAxis hide />
-                                <Tooltip contentStyle={tooltipStyle} />
-                                <Line type="monotone" dataKey="hours" stroke="#22d3ee" strokeWidth={2.5} dot={{ fill: '#22d3ee', r: 5, strokeWidth: 0 }}
-                                    style={{ filter: 'drop-shadow(0 0 4px rgba(34,211,238,0.4))' }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        <Suspense fallback={<ChartSkeleton />}>
+                            <LazyRecharts>
+                                {({ ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip }) => (
+                                    <ResponsiveContainer width="100%" height={180}>
+                                        <LineChart data={weeklyData}>
+                                            <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                                            <YAxis hide />
+                                            <Tooltip contentStyle={tooltipStyle} />
+                                            <Line type="monotone" dataKey="hours" stroke="#22d3ee" strokeWidth={2.5} dot={{ fill: '#22d3ee', r: 5, strokeWidth: 0 }}
+                                                style={{ filter: 'drop-shadow(0 0 4px rgba(34,211,238,0.4))' }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </LazyRecharts>
+                        </Suspense>
                     </GlowPanel>
 
                     <GlowPanel title="🧩 Category Breakdown" color="#f472b6" delay={0.3}>
                         {categoryData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={180}>
-                                <PieChart>
-                                    <Pie data={categoryData} cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3} dataKey="value">
-                                        {categoryData.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                                    </Pie>
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <Suspense fallback={<ChartSkeleton />}>
+                                <LazyRecharts>
+                                    {({ ResponsiveContainer, PieChart, Pie, Tooltip, Cell }) => (
+                                        <ResponsiveContainer width="100%" height={180}>
+                                            <PieChart>
+                                                <Pie data={categoryData} cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3} dataKey="value">
+                                                    {categoryData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                                                </Pie>
+                                                <Tooltip contentStyle={tooltipStyle} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    )}
+                                </LazyRecharts>
+                            </Suspense>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-[180px] gap-2">
                                 <Sparkles size={24} className="text-zinc-500" />

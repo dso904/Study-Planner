@@ -6,10 +6,9 @@ import { usePathname } from 'next/navigation';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { currentWeekStartAtom, notesPanelOpenAtom, notesAtom } from '@/lib/atoms';
-import { timerOpenAtom, timerRunningAtom, timerSecondsAtom, timerModeAtom } from '@/lib/timer-atoms';
 import { isAuthenticatedAtom, destroySession } from '@/lib/auth';
 import { getWeekRangeLabel, isCurrentWeek } from '@/lib/dates';
-import { Printer, StickyNote, Timer, Clock, LogOut } from 'lucide-react';
+import { Printer, StickyNote, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import PrintModal from '@/components/print-modal';
@@ -33,11 +32,6 @@ export default function Topbar() {
     const notes = useAtomValue(notesAtom) || [];
     const undoneCount = notes.filter((n) => !n.done).length;
 
-    const [timerOpen, setTimerOpen] = useAtom(timerOpenAtom);
-    const timerRunning = useAtomValue(timerRunningAtom);
-    const timerSeconds = useAtomValue(timerSecondsAtom);
-    const timerMode = useAtomValue(timerModeAtom);
-
     const setAuthenticated = useSetAtom(isAuthenticatedAtom);
     const isMobile = useIsMobile();
 
@@ -45,13 +39,6 @@ export default function Topbar() {
         destroySession();
         setAuthenticated(false);
         window.history.replaceState({ loggedOut: true }, '', window.location.href);
-    };
-
-    // H6-FIX: Math.floor the secs to avoid displaying fractional seconds from rAF
-    const formatTimerTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     };
 
     return (
@@ -80,29 +67,8 @@ export default function Topbar() {
                     )}
                 </div>
 
-                {/* Right: Timer + Notes + Print */}
+                {/* Right: Notes + Print */}
                 <div className="flex items-center gap-2">
-
-                    {/* Timer toggle */}
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={`relative text-zinc-400 hover:text-zinc-200 ${timerOpen ? 'text-cyan-400 bg-cyan-500/10' : ''}`}
-                                    onClick={() => setTimerOpen(!timerOpen)}
-                                >
-                                    {timerMode === 'timer' ? (
-                                        <Timer size={18} />
-                                    ) : (
-                                        <Clock size={18} />
-                                    )}
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Timer / Stopwatch</TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
 
                     {/* Quick Notes toggle */}
                     <TooltipProvider>
